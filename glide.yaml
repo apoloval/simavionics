@@ -1,0 +1,3 @@
+package: github.com/apoloval/simavionics
+import:
+- package: github.com/stretchr/testify
