@@ -10,28 +10,28 @@ import (
 
 type APUTestSuite struct {
 	suite.Suite
-	tm  *core.FakeTimeManager
-	bus *core.DefaultEventBus
-	ec  chan core.Event
-	apu *APU
+	tm       *core.FakeTimeManager
+	bus      *core.DefaultEventBus
+	consumer core.EventBusConsumer
+	apu      *APU
 }
 
 func (suite *APUTestSuite) SetupTest() {
 	suite.tm = core.NewFakeTimeManager()
 	suite.bus = core.NewDefaultEventBus()
-	suite.ec = make(chan core.Event, 16)
+	suite.consumer = core.NewEventBusConsumer(suite.bus, 16)
 	suite.apu = NewAPU(suite.tm, suite.bus)
 }
 
 func (suite *APUTestSuite) TestSwitchOn() {
-	suite.bus.Subscribe(apuStateFlapOpen, suite.ec)
-	suite.bus.Subscribe(apuStateMasterSwOn, suite.ec)
+	suite.consumer.Subscribe(apuStateFlapOpen)
+	suite.consumer.Subscribe(apuStateMasterSwOn)
 	suite.bus.Publish(core.Event{apuActionMasterSwOn, true})
 
-	ev := <-suite.ec
+	ev := suite.consumer.Consume()
 	assert.Equal(suite.T(), apuStateFlapOpen, ev.Name)
 	assert.Equal(suite.T(), true, ev.Bool())
-	ev = <-suite.ec
+	ev = suite.consumer.Consume()
 	assert.Equal(suite.T(), apuStateMasterSwOn, ev.Name)
 	assert.Equal(suite.T(), true, ev.Bool())
 }

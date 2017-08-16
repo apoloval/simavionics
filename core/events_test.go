@@ -8,7 +8,7 @@ import (
 
 func TestDefaultEventBus_PublishSubscribe(t *testing.T) {
 	bus := NewDefaultEventBus()
-	c := make(EventChan)
+	c := make(EventBusConsumer)
 	bus.Subscribe("foobar", c)
 
 	go func() {
