@@ -74,3 +74,15 @@ func (rtm *RealTimeManager) handleTimer(t time.Time) {
 	rtm.timer.Reset(RealTimeSampling)
 	rtm.lastTick = t1
 }
+
+type FakeTimeManager struct {
+	observers []chan TimeEvent
+}
+
+func NewFakeTimeManager() *FakeTimeManager {
+	return &FakeTimeManager{}
+}
+
+func (ftm *FakeTimeManager) Observe(c chan TimeEvent) {
+	ftm.observers = append(ftm.observers, c)
+}
