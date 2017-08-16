@@ -63,9 +63,13 @@ func (rtm *RealTimeManager) handleTimer(t time.Time) {
 		t1:      t1,
 		elapsed: t1.Sub(t0),
 	}
-	log.Printf("[rtm] Notifying a time event %v", t)
+	log.Printf("[rtm] Notifying a time event of %v elapsed", event.elapsed)
 	for _, obs := range rtm.observers {
-		obs <- event
+		select {
+		case obs <- event:
+		default:
+			log.Printf("[rtm] Failed to notify time event to observer (might not listen?)")
+		}
 	}
 	rtm.timer.Reset(RealTimeSampling)
 	rtm.lastTick = t1
