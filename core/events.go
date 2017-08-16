@@ -6,14 +6,12 @@ type EventName string
 
 type Event struct {
 	Name  EventName
-	value interface{}
+	Value interface{}
 }
 
-func NewIntEvent(name EventName, v int) Event { return Event{name, v} }
-
-func (ev Event) Bool() bool     { return ev.value.(bool) }
-func (ev Event) Int() int       { return ev.value.(int) }
-func (ev Event) Float() float64 { return ev.value.(float64) }
+func (ev Event) Bool() bool     { return ev.Value.(bool) }
+func (ev Event) Int() int       { return ev.Value.(int) }
+func (ev Event) Float() float64 { return ev.Value.(float64) }
 
 type EventChan chan Event
 
@@ -39,7 +37,7 @@ func (bus *DefaultEventBus) Subscribe(en EventName, ec EventChan) {
 }
 
 func (bus *DefaultEventBus) Publish(ev Event) {
-	log.Printf("[bus] Publishing event '%v': %v", ev.Name, ev.value)
+	log.Printf("[bus] Publishing event '%v': %v", ev.Name, ev.Value)
 	ss := bus.subscribers[ev.Name]
 	for _, s := range ss {
 		s <- ev

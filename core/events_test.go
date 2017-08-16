@@ -12,7 +12,7 @@ func TestDefaultEventBus_PublishSubscribe(t *testing.T) {
 	bus.Subscribe("foobar", c)
 
 	go func() {
-		bus.Publish(NewIntEvent("foobar", 42))
+		bus.Publish(Event{"foobar", 42})
 	}()
 
 	v := <-c
