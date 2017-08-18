@@ -6,6 +6,10 @@ import (
 
 type TimeDilation int64
 
+func (td TimeDilation) Dilated(d time.Duration) time.Duration {
+	return d / time.Duration(td)
+}
+
 type RealTimeSystem struct {
 	timeDilation       TimeDilation
 	deferredActionChan chan func()
@@ -19,7 +23,7 @@ func NewRealTimeSytem(timeFactor TimeDilation) RealTimeSystem {
 }
 
 func (rts *RealTimeSystem) DeferAction(d time.Duration, action func()) {
-	time.AfterFunc(d/time.Duration(rts.timeDilation), func() {
+	time.AfterFunc(rts.timeDilation.Dilated(d), func() {
 		rts.deferredActionChan <- action
 	})
 }
