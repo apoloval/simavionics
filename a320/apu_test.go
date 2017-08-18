@@ -27,10 +27,10 @@ func (suite *APUTestSuite) TestSwitchOn() {
 	suite.bus.Publish(core.Event{apuActionMasterSwOn, true})
 
 	ev := suite.consumer.Consume()
-	assert.Equal(suite.T(), apuStateFlapOpen, ev.Name)
+	assert.Equal(suite.T(), apuStateMasterSwOn, ev.Name)
 	assert.Equal(suite.T(), true, ev.Bool())
 	ev = suite.consumer.Consume()
-	assert.Equal(suite.T(), apuStateMasterSwOn, ev.Name)
+	assert.Equal(suite.T(), apuStateFlapOpen, ev.Name)
 	assert.Equal(suite.T(), true, ev.Bool())
 }
 
