@@ -46,18 +46,15 @@ type APU struct {
 
 	bus core.EventBus
 
-	time  chan core.TimeEvent
 	event chan core.Event
 }
 
-func NewAPU(tm core.TimeManager, bus core.EventBus) *APU {
+func NewAPU(bus core.EventBus) *APU {
 	apu := &APU{
 		status: apuPowerOff,
 		bus:    bus,
-		time:   make(chan core.TimeEvent, 16),
 		event:  make(chan core.Event),
 	}
-	tm.Observe(apu.time)
 	apu.setupBus()
 	go apu.run()
 	return apu
@@ -71,17 +68,11 @@ func (apu *APU) run() {
 	log.Printf("[apu] Starting a new APU module")
 	for {
 		select {
-		case time := <-apu.time:
-			apu.handleTime(time)
 		case event := <-apu.event:
 			apu.handleEvent(event)
 		}
 
 	}
-}
-
-func (apu *APU) handleTime(time core.TimeEvent) {
-	// TODO: implement this
 }
 
 func (apu *APU) handleEvent(event core.Event) {

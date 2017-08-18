@@ -10,17 +10,15 @@ import (
 
 type APUTestSuite struct {
 	suite.Suite
-	tm       *core.FakeTimeManager
 	bus      *core.DefaultEventBus
 	consumer core.EventBusConsumer
 	apu      *APU
 }
 
 func (suite *APUTestSuite) SetupTest() {
-	suite.tm = core.NewFakeTimeManager()
 	suite.bus = core.NewDefaultEventBus()
 	suite.consumer = core.NewEventBusConsumer(suite.bus, 16)
-	suite.apu = NewAPU(suite.tm, suite.bus)
+	suite.apu = NewAPU(suite.bus)
 }
 
 func (suite *APUTestSuite) TestSwitchOn() {
