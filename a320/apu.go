@@ -54,11 +54,11 @@ type APU struct {
 	eventChan chan core.Event
 }
 
-func NewAPU(bus core.EventBus) *APU {
+func NewAPU(ctx core.SimContext) *APU {
 	apu := &APU{
-		RealTimeSystem: core.NewRealTimeSytem(),
+		RealTimeSystem: core.NewRealTimeSytem(ctx.RealTimeDilation),
 		status:         apuPowerOff,
-		bus:            bus,
+		bus:            ctx.Bus,
 		eventChan:      make(chan core.Event),
 	}
 	apu.setupBus()

@@ -18,7 +18,8 @@ type APUTestSuite struct {
 func (suite *APUTestSuite) SetupTest() {
 	suite.bus = core.NewDefaultEventBus()
 	suite.consumer = core.NewEventBusConsumer(suite.bus, 16)
-	suite.apu = NewAPU(suite.bus)
+	ctx := core.SimContext{suite.bus, 1000}
+	suite.apu = NewAPU(ctx)
 }
 
 func (suite *APUTestSuite) TestSwitchOn() {
