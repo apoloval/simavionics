@@ -8,14 +8,12 @@ import (
 
 func TestDefaultEventBus_PublishSubscribe(t *testing.T) {
 	bus := NewDefaultEventBus()
-	c := make(EventBusConsumer)
-	bus.Subscribe("foobar", c)
+	consumer := NewEventBusConsumer(bus, 16)
+	consumer.Subscribe("foobar")
 
-	go func() {
-		bus.Publish(Event{"foobar", 42})
-	}()
+	bus.Publish(Event{"foobar", 42})
 
-	v := <-c
+	v := consumer.Consume()
 
 	assert.Equal(t, 42, v.Int())
 }

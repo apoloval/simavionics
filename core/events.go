@@ -19,27 +19,58 @@ type EventBus interface {
 }
 
 type DefaultEventBus struct {
-	subscribers map[EventName][]chan Event
+	subscribers   map[EventName][]chan Event
+	publishChan   chan Event
+	subscribeChan chan subscription
+}
+
+type subscription struct {
+	name EventName
+	c    chan Event
 }
 
 func NewDefaultEventBus() *DefaultEventBus {
-	return &DefaultEventBus{
-		subscribers: make(map[EventName][]chan Event),
+	bus := &DefaultEventBus{
+		subscribers:   make(map[EventName][]chan Event),
+		publishChan:   make(chan Event),
+		subscribeChan: make(chan subscription),
 	}
+	go bus.run()
+	return bus
 }
 
 func (bus *DefaultEventBus) Subscribe(en EventName, ec chan Event) {
-	ss := bus.subscribers[en]
-	ss = append(ss, ec)
-	bus.subscribers[en] = ss
+	bus.subscribeChan <- subscription{en, ec}
 }
 
 func (bus *DefaultEventBus) Publish(ev Event) {
+	bus.publishChan <- ev
+}
+
+func (bus *DefaultEventBus) run() {
+	log.Print("[bus] Event bus is started")
+	for {
+		select {
+		case e := <-bus.publishChan:
+			bus.publish(e)
+		case s := <-bus.subscribeChan:
+			bus.subscribe(s.name, s.c)
+		}
+	}
+}
+
+func (bus *DefaultEventBus) publish(ev Event) {
 	log.Printf("[bus] Publishing event '%v': %v", ev.Name, ev.Value)
 	ss := bus.subscribers[ev.Name]
 	for _, s := range ss {
 		s <- ev
 	}
+}
+
+func (bus *DefaultEventBus) subscribe(en EventName, ec chan Event) {
+	ss := bus.subscribers[en]
+	ss = append(ss, ec)
+	bus.subscribers[en] = ss
 }
 
 type EventBusConsumer struct {
