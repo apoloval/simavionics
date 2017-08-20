@@ -11,23 +11,19 @@ func (td TimeDilation) Dilated(d time.Duration) time.Duration {
 }
 
 type RealTimeSystem struct {
-	timeDilation       TimeDilation
-	deferredActionChan chan func()
+	TimeDilation       TimeDilation
+	DeferredActionChan chan func()
 }
 
-func NewRealTimeSytem(timeFactor TimeDilation) RealTimeSystem {
+func NewRealTimeSytem(timeDilation TimeDilation) RealTimeSystem {
 	return RealTimeSystem{
-		timeDilation:       timeFactor,
-		deferredActionChan: make(chan func()),
+		TimeDilation:       timeDilation,
+		DeferredActionChan: make(chan func()),
 	}
 }
 
 func (rts *RealTimeSystem) DeferAction(d time.Duration, action func()) {
-	time.AfterFunc(rts.timeDilation.Dilated(d), func() {
-		rts.deferredActionChan <- action
+	time.AfterFunc(rts.TimeDilation.Dilated(d), func() {
+		rts.DeferredActionChan <- action
 	})
-}
-
-func (rts *RealTimeSystem) DeferredActionChan() chan func() {
-	return rts.deferredActionChan
 }

@@ -18,6 +18,12 @@ type EventBus interface {
 	Publish(ev Event)
 }
 
+func NewSubscription(bus EventBus, event EventName) chan Event {
+	c := make(chan Event)
+	bus.Subscribe(event, c)
+	return c
+}
+
 type DefaultEventBus struct {
 	subscribers   map[EventName][]chan Event
 	publishChan   chan Event

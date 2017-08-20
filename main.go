@@ -12,9 +12,9 @@ import (
 
 func main() {
 	log.Printf("[main] Initializing A320 simulator")
-	rtm := core.NewRealTimeManager()
 	bus := core.NewDefaultEventBus()
-	a320.NewAPU(rtm, bus)
+	ctx := core.SimContext{bus, 1}
+	a320.NewAPU(ctx)
 	waitForStopSignal()
 }
 

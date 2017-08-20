@@ -76,7 +76,7 @@ func (apu *APU) run() {
 		select {
 		case event := <-apu.eventChan:
 			apu.handleEvent(event)
-		case action := <-apu.DeferredActionChan():
+		case action := <-apu.DeferredActionChan:
 			action()
 		}
 	}
