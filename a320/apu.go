@@ -4,18 +4,16 @@ import (
 	"log"
 	"time"
 
+	"github.com/apoloval/simavionics/a320/internal/apu"
 	"github.com/apoloval/simavionics/core"
 )
 
 const (
 	apuPowerOff apuStatus = "apu/status/power_off"
 	apuPowerOn  apuStatus = "apu/status/power_on"
-	apuStarting apuStatus = "apu/status/starting"
-	apuStarted  apuStatus = "apu/status/started"
 
 	apuActionMasterSwOn core.EventName = "apu/action/master_switch_on"
 
-	apuStateFlapOpen   core.EventName = "apu/state/flap_open"
 	apuStateMasterSwOn core.EventName = "apu/state/master_switch_on"
 
 	apuFlapOpenTime = 6 * time.Second
@@ -49,7 +47,8 @@ type APU struct {
 	state  apuState
 	status apuStatus
 
-	bus core.EventBus
+	bus  core.EventBus
+	flap *apu.Flap
 
 	apuMasterSwActionChan <-chan interface{}
 }
@@ -59,6 +58,7 @@ func NewAPU(ctx core.SimContext) *APU {
 		RealTimeSystem: core.NewRealTimeSytem(ctx.RealTimeDilation),
 		status:         apuPowerOff,
 		bus:            ctx.Bus,
+		flap:           apu.NewFlap(ctx),
 
 		apuMasterSwActionChan: ctx.Bus.Subscribe(apuActionMasterSwOn),
 	}
@@ -83,18 +83,12 @@ func (apu *APU) handleMasterSw(on bool) {
 		log.Printf("[apu] Received a master switch action: on -> %v", on)
 		apu.status = apuPowerOn
 		apu.updateMasterSw(true)
-		apu.afterUpdateFlap(apuFlapOpenTime, true)
+		apu.flap.Open()
 	}
 }
 
 func (apu *APU) updateMasterSw(on bool) {
 	apu.updateBool(apuStateMasterSwOn, &apu.state.masterSwitch, on)
-}
-
-func (apu *APU) afterUpdateFlap(d time.Duration, open bool) {
-	apu.DeferAction(d, func() {
-		apu.updateBool(apuStateFlapOpen, &apu.state.flapOpen, open)
-	})
 }
 
 func (apu *APU) updateBool(en core.EventName, value *bool, update bool) {

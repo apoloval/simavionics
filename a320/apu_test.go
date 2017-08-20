@@ -3,6 +3,7 @@ package a320
 import (
 	"testing"
 
+	"github.com/apoloval/simavionics/a320/internal/apu"
 	"github.com/apoloval/simavionics/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -24,7 +25,7 @@ func (suite *APUTestSuite) SetupTest() {
 
 func (suite *APUTestSuite) TestSwitchOn() {
 	masterSwChan := suite.bus.Subscribe(apuStateMasterSwOn)
-	flapOpenChan := suite.bus.Subscribe(apuStateFlapOpen)
+	flapOpenChan := suite.bus.Subscribe(apu.StatusFlapOpen)
 	suite.bus.Publish(apuActionMasterSwOn, true)
 
 	ev := <-masterSwChan
