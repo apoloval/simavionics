@@ -51,7 +51,7 @@ type APU struct {
 
 	bus core.EventBus
 
-	eventChan chan core.Event
+	apuMasterSwActionChan <-chan interface{}
 }
 
 func NewAPU(ctx core.SimContext) *APU {
@@ -59,33 +59,22 @@ func NewAPU(ctx core.SimContext) *APU {
 		RealTimeSystem: core.NewRealTimeSytem(ctx.RealTimeDilation),
 		status:         apuPowerOff,
 		bus:            ctx.Bus,
-		eventChan:      make(chan core.Event),
+
+		apuMasterSwActionChan: ctx.Bus.Subscribe(apuActionMasterSwOn),
 	}
-	apu.setupBus()
 	go apu.run()
 	return apu
-}
-
-func (apu *APU) setupBus() {
-	apu.bus.Subscribe(apuActionMasterSwOn, apu.eventChan)
 }
 
 func (apu *APU) run() {
 	log.Printf("[apu] Starting a new APU module")
 	for {
 		select {
-		case event := <-apu.eventChan:
-			apu.handleEvent(event)
+		case event := <-apu.apuMasterSwActionChan:
+			apu.handleMasterSw(event.(bool))
 		case action := <-apu.DeferredActionChan:
 			action()
 		}
-	}
-}
-
-func (apu *APU) handleEvent(event core.Event) {
-	switch event.Name {
-	case apuActionMasterSwOn:
-		apu.handleMasterSw(event.Bool())
 	}
 }
 
@@ -111,6 +100,6 @@ func (apu *APU) afterUpdateFlap(d time.Duration, open bool) {
 func (apu *APU) updateBool(en core.EventName, value *bool, update bool) {
 	if *value != update {
 		*value = update
-		apu.bus.Publish(core.Event{en, update})
+		apu.bus.Publish(en, update)
 	}
 }

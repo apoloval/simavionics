@@ -11,7 +11,7 @@ func TestDefaultEventBus_PublishSubscribe(t *testing.T) {
 	consumer := NewEventBusConsumer(bus, 16)
 	consumer.Subscribe("foobar")
 
-	bus.Publish(Event{"foobar", 42})
+	bus.Publish(event{"foobar", 42})
 
 	v := consumer.Consume()
 

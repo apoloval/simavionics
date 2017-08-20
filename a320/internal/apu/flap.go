@@ -92,8 +92,7 @@ func (flap *Flap) doClose() {
 }
 
 func (flap *Flap) publishStatus(status bool) {
-	event := core.Event{StatusFlapOpen, status}
-	flap.bus.Publish(event)
+	flap.bus.Publish(StatusFlapOpen, status)
 }
 
 func (flap *Flap) tickerChan() <-chan time.Time {

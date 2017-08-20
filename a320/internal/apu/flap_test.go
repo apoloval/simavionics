@@ -26,19 +26,19 @@ func (suite *FlapTestSuite) SetupTest() {
 }
 
 func (suite *FlapTestSuite) TestOpenAndClose() {
-	c := core.NewSubscription(suite.bus, StatusFlapOpen)
+	c := suite.bus.Subscribe(StatusFlapOpen)
 	suite.flap.Open()
 
 	suite.AssertElapsed(6*time.Second, func() {
 		event := <-c
-		assert.Equal(suite.T(), true, event.Value)
+		assert.Equal(suite.T(), true, event)
 	})
 
 	suite.flap.Close()
 
 	suite.AssertElapsed(10*time.Millisecond, func() {
 		event := <-c
-		assert.Equal(suite.T(), false, event.Value)
+		assert.Equal(suite.T(), false, event)
 	})
 }
 

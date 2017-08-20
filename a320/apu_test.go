@@ -11,32 +11,28 @@ import (
 type APUTestSuite struct {
 	suite.Suite
 	core.TimeAsserts
-	bus      *core.DefaultEventBus
-	consumer core.EventBusConsumer
-	apu      *APU
+	bus *core.DefaultEventBus
+	apu *APU
 }
 
 func (suite *APUTestSuite) SetupTest() {
 	suite.TimeAsserts = core.NewTimeAsserts(suite.T())
 	suite.bus = core.NewDefaultEventBus()
-	suite.consumer = core.NewEventBusConsumer(suite.bus, 16)
 	ctx := core.SimContext{suite.bus, suite.Dilation}
 	suite.apu = NewAPU(ctx)
 }
 
 func (suite *APUTestSuite) TestSwitchOn() {
-	suite.consumer.Subscribe(apuStateFlapOpen)
-	suite.consumer.Subscribe(apuStateMasterSwOn)
-	suite.bus.Publish(core.Event{apuActionMasterSwOn, true})
+	masterSwChan := suite.bus.Subscribe(apuStateMasterSwOn)
+	flapOpenChan := suite.bus.Subscribe(apuStateFlapOpen)
+	suite.bus.Publish(apuActionMasterSwOn, true)
 
-	ev := suite.consumer.Consume()
-	assert.Equal(suite.T(), apuStateMasterSwOn, ev.Name)
-	assert.Equal(suite.T(), true, ev.Bool())
+	ev := <-masterSwChan
+	assert.Equal(suite.T(), true, ev.(bool))
 
 	suite.AssertElapsed(apuFlapOpenTime, func() {
-		ev = suite.consumer.Consume()
-		assert.Equal(suite.T(), apuStateFlapOpen, ev.Name)
-		assert.Equal(suite.T(), true, ev.Bool())
+		ev = <-flapOpenChan
+		assert.Equal(suite.T(), true, ev.(bool))
 	})
 }
 

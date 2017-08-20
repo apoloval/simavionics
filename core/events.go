@@ -4,57 +4,49 @@ import "log"
 
 type EventName string
 
-type Event struct {
-	Name  EventName
-	Value interface{}
-}
-
-func (ev Event) Bool() bool     { return ev.Value.(bool) }
-func (ev Event) Int() int       { return ev.Value.(int) }
-func (ev Event) Float() float64 { return ev.Value.(float64) }
-
 type EventBus interface {
-	Subscribe(en EventName, ec chan Event)
-	Publish(ev Event)
-}
-
-func NewSubscription(bus EventBus, event EventName) chan Event {
-	c := make(chan Event)
-	bus.Subscribe(event, c)
-	return c
+	Subscribe(ev EventName) <-chan interface{}
+	Publish(ev EventName, value interface{})
 }
 
 type DefaultEventBus struct {
-	subscribers   map[EventName][]chan Event
-	publishChan   chan Event
+	subscribers   map[EventName][]chan interface{}
+	publishChan   chan event
 	subscribeChan chan subscription
+}
+
+type event struct {
+	name  EventName
+	value interface{}
 }
 
 type subscription struct {
 	name EventName
-	c    chan Event
+	c    chan interface{}
 }
 
 func NewDefaultEventBus() *DefaultEventBus {
 	bus := &DefaultEventBus{
-		subscribers:   make(map[EventName][]chan Event),
-		publishChan:   make(chan Event),
+		subscribers:   make(map[EventName][]chan interface{}),
+		publishChan:   make(chan event),
 		subscribeChan: make(chan subscription),
 	}
 	go bus.run()
 	return bus
 }
 
-func (bus *DefaultEventBus) Subscribe(en EventName, ec chan Event) {
+func (bus *DefaultEventBus) Subscribe(en EventName) <-chan interface{} {
+	ec := make(chan interface{})
 	bus.subscribeChan <- subscription{en, ec}
+	return ec
 }
 
-func (bus *DefaultEventBus) Publish(ev Event) {
-	bus.publishChan <- ev
+func (bus *DefaultEventBus) Publish(ev EventName, value interface{}) {
+	bus.publishChan <- event{ev, value}
 }
 
 func (bus *DefaultEventBus) run() {
-	log.Print("[bus] Event bus is started")
+	log.Print("[bus] event bus is started")
 	for {
 		select {
 		case e := <-bus.publishChan:
@@ -65,36 +57,16 @@ func (bus *DefaultEventBus) run() {
 	}
 }
 
-func (bus *DefaultEventBus) publish(ev Event) {
-	log.Printf("[bus] Publishing event '%v': %v", ev.Name, ev.Value)
-	ss := bus.subscribers[ev.Name]
+func (bus *DefaultEventBus) publish(ev event) {
+	log.Printf("[bus] Publishing event '%v': %v", ev.name, ev.value)
+	ss := bus.subscribers[ev.name]
 	for _, s := range ss {
-		s <- ev
+		s <- ev.value
 	}
 }
 
-func (bus *DefaultEventBus) subscribe(en EventName, ec chan Event) {
+func (bus *DefaultEventBus) subscribe(en EventName, ec chan interface{}) {
 	ss := bus.subscribers[en]
 	ss = append(ss, ec)
 	bus.subscribers[en] = ss
-}
-
-type EventBusConsumer struct {
-	bus EventBus
-	C   chan Event
-}
-
-func NewEventBusConsumer(bus EventBus, buffsize int) EventBusConsumer {
-	return EventBusConsumer{
-		bus: bus,
-		C:   make(chan Event, buffsize),
-	}
-}
-
-func (ebc EventBusConsumer) Subscribe(name EventName) {
-	ebc.bus.Subscribe(name, ebc.C)
-}
-
-func (ebc EventBusConsumer) Consume() Event {
-	return <-ebc.C
 }
