@@ -47,8 +47,9 @@ type APU struct {
 	state  apuState
 	status apuStatus
 
-	bus  core.EventBus
-	flap *apu.Flap
+	bus    core.EventBus
+	flap   *apu.Flap
+	engine *apu.Engine
 
 	apuMasterSwActionChan <-chan interface{}
 }
@@ -59,11 +60,16 @@ func NewAPU(ctx core.SimContext) *APU {
 		status:         apuPowerOff,
 		bus:            ctx.Bus,
 		flap:           apu.NewFlap(ctx),
+		engine:         apu.NewEngine(ctx),
 
 		apuMasterSwActionChan: ctx.Bus.Subscribe(apuActionMasterSwOn),
 	}
 	go apu.run()
 	return apu
+}
+
+func (apu *APU) Start() {
+	apu.bus.Publish(apuActionMasterSwOn, true)
 }
 
 func (apu *APU) run() {
@@ -84,6 +90,7 @@ func (apu *APU) handleMasterSw(on bool) {
 		apu.status = apuPowerOn
 		apu.updateMasterSw(true)
 		apu.flap.Open()
+		apu.engine.Start()
 	}
 }
 

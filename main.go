@@ -14,7 +14,8 @@ func main() {
 	log.Printf("[main] Initializing A320 simulator")
 	bus := core.NewDefaultEventBus()
 	ctx := core.SimContext{bus, 1}
-	a320.NewAPU(ctx)
+	apu := a320.NewAPU(ctx)
+	apu.Start()
 	waitForStopSignal()
 }
 
