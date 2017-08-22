@@ -1,3 +1,4 @@
 package: github.com/apoloval/simavionics
 import:
 - package: github.com/stretchr/testify
+- package: github.com/veandco/go-sdl2/sdl

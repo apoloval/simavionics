@@ -3,7 +3,7 @@ package a320
 import (
 	"testing"
 
-	"github.com/apoloval/simavionics/a320/internal/apu"
+	"github.com/apoloval/simavionics/a320/apu"
 	"github.com/apoloval/simavionics/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

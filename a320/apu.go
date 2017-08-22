@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/apoloval/simavionics/a320/internal/apu"
+	"github.com/apoloval/simavionics/a320/apu"
 	"github.com/apoloval/simavionics/core"
 )
 
