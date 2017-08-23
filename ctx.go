@@ -1,6 +1,6 @@
 package simavionics
 
-type SimContext struct {
+type Context struct {
 	Bus              EventBus
 	RealTimeDilation TimeDilation
 }

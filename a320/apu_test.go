@@ -3,8 +3,8 @@ package a320
 import (
 	"testing"
 
-	"github.com/apoloval/simavionics"
 	"github.com/apoloval/simavionics/a320/apu"
+	"github.com/apoloval/simavionics"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -19,7 +19,7 @@ type APUTestSuite struct {
 func (suite *APUTestSuite) SetupTest() {
 	suite.TimeAsserts = simavionics.NewTimeAsserts(suite.T())
 	suite.bus = simavionics.NewDefaultEventBus()
-	ctx := simavionics.SimContext{suite.bus, suite.Dilation}
+	ctx := simavionics.Context{suite.bus, suite.Dilation}
 	suite.apu = NewAPU(ctx)
 }
 

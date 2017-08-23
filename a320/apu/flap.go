@@ -27,7 +27,7 @@ type Flap struct {
 	closeChan chan bool
 }
 
-func NewFlap(ctx simavionics.SimContext) *Flap {
+func NewFlap(ctx simavionics.Context) *Flap {
 	flap := &Flap{
 		RealTimeSystem: simavionics.NewRealTimeSytem(ctx.RealTimeDilation),
 		bus:            ctx.Bus,

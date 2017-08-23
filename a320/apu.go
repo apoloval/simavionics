@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/apoloval/simavionics"
 	"github.com/apoloval/simavionics/a320/apu"
+	"github.com/apoloval/simavionics"
 )
 
 const (
@@ -54,7 +54,7 @@ type APU struct {
 	apuMasterSwActionChan <-chan interface{}
 }
 
-func NewAPU(ctx simavionics.SimContext) *APU {
+func NewAPU(ctx simavionics.Context) *APU {
 	apu := &APU{
 		RealTimeSystem: simavionics.NewRealTimeSytem(ctx.RealTimeDilation),
 		status:         apuPowerOff,

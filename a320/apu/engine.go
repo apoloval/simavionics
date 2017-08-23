@@ -35,7 +35,7 @@ type Engine struct {
 	startChan chan bool
 }
 
-func NewEngine(ctx simavionics.SimContext) *Engine {
+func NewEngine(ctx simavionics.Context) *Engine {
 	engine := &Engine{
 		RealTimeSystem: simavionics.NewRealTimeSytem(ctx.RealTimeDilation),
 		bus:            ctx.Bus,

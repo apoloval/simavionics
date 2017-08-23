@@ -9,7 +9,7 @@ import (
 
 func TestEngine_Start(t *testing.T) {
 	bus := simavionics.NewDefaultEventBus()
-	engine := NewEngine(simavionics.SimContext{bus, 100})
+	engine := NewEngine(simavionics.Context{bus, 100})
 
 	engine.Start()
 

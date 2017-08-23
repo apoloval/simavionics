@@ -21,7 +21,7 @@ type FlapTestSuite struct {
 func (suite *FlapTestSuite) SetupTest() {
 	suite.TimeAsserts = simavionics.NewTimeAsserts(suite.T())
 	suite.bus = simavionics.NewDefaultEventBus()
-	ctx := simavionics.SimContext{suite.bus, suite.Dilation}
+	ctx := simavionics.Context{suite.bus, suite.Dilation}
 	suite.flap = NewFlap(ctx)
 }
 
