@@ -5,23 +5,23 @@ import (
 
 	"time"
 
-	"github.com/apoloval/simavionics/core"
+	"github.com/apoloval/simavionics"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
 type FlapTestSuite struct {
 	suite.Suite
-	core.TimeAsserts
+	simavionics.TimeAsserts
 
-	bus  *core.LocalEventBus
+	bus  *simavionics.LocalEventBus
 	flap *Flap
 }
 
 func (suite *FlapTestSuite) SetupTest() {
-	suite.TimeAsserts = core.NewTimeAsserts(suite.T())
-	suite.bus = core.NewDefaultEventBus()
-	ctx := core.SimContext{suite.bus, suite.Dilation}
+	suite.TimeAsserts = simavionics.NewTimeAsserts(suite.T())
+	suite.bus = simavionics.NewDefaultEventBus()
+	ctx := simavionics.SimContext{suite.bus, suite.Dilation}
 	suite.flap = NewFlap(ctx)
 }
 

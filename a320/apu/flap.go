@@ -5,7 +5,7 @@ import (
 
 	"log"
 
-	"github.com/apoloval/simavionics/core"
+	simavionics "github.com/apoloval/simavionics"
 )
 
 const (
@@ -16,20 +16,20 @@ const (
 )
 
 type Flap struct {
-	core.RealTimeSystem
+	simavionics.RealTimeSystem
 
 	position float64 // From 0.0 (closed) to 1.0 (open)
 	speed    float64
 	ticker   *time.Ticker
-	bus      core.EventBus
+	bus      simavionics.EventBus
 
 	openChan  chan bool
 	closeChan chan bool
 }
 
-func NewFlap(ctx core.SimContext) *Flap {
+func NewFlap(ctx simavionics.SimContext) *Flap {
 	flap := &Flap{
-		RealTimeSystem: core.NewRealTimeSytem(ctx.RealTimeDilation),
+		RealTimeSystem: simavionics.NewRealTimeSytem(ctx.RealTimeDilation),
 		bus:            ctx.Bus,
 		openChan:       make(chan bool),
 		closeChan:      make(chan bool),

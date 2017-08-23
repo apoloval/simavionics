@@ -4,17 +4,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/apoloval/simavionics"
 	"github.com/apoloval/simavionics/a320/apu"
-	"github.com/apoloval/simavionics/core"
 )
 
 const (
 	apuPowerOff apuStatus = "apu/status/power_off"
 	apuPowerOn  apuStatus = "apu/status/power_on"
 
-	apuActionMasterSwOn core.EventName = "apu/action/master_switch_on"
+	apuActionMasterSwOn simavionics.EventName = "apu/action/master_switch_on"
 
-	apuStateMasterSwOn core.EventName = "apu/state/master_switch_on"
+	apuStateMasterSwOn simavionics.EventName = "apu/state/master_switch_on"
 
 	apuFlapOpenTime = 6 * time.Second
 )
@@ -42,21 +42,21 @@ type apuState struct {
 }
 
 type APU struct {
-	core.RealTimeSystem
+	simavionics.RealTimeSystem
 
 	state  apuState
 	status apuStatus
 
-	bus    core.EventBus
+	bus    simavionics.EventBus
 	flap   *apu.Flap
 	engine *apu.Engine
 
 	apuMasterSwActionChan <-chan interface{}
 }
 
-func NewAPU(ctx core.SimContext) *APU {
+func NewAPU(ctx simavionics.SimContext) *APU {
 	apu := &APU{
-		RealTimeSystem: core.NewRealTimeSytem(ctx.RealTimeDilation),
+		RealTimeSystem: simavionics.NewRealTimeSytem(ctx.RealTimeDilation),
 		status:         apuPowerOff,
 		bus:            ctx.Bus,
 		flap:           apu.NewFlap(ctx),
@@ -98,7 +98,7 @@ func (apu *APU) updateMasterSw(on bool) {
 	apu.updateBool(apuStateMasterSwOn, &apu.state.masterSwitch, on)
 }
 
-func (apu *APU) updateBool(en core.EventName, value *bool, update bool) {
+func (apu *APU) updateBool(en simavionics.EventName, value *bool, update bool) {
 	if *value != update {
 		*value = update
 		apu.bus.Publish(en, update)

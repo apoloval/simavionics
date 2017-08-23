@@ -3,7 +3,7 @@ package apu
 import (
 	"time"
 
-	"github.com/apoloval/simavionics/core"
+	"github.com/apoloval/simavionics"
 )
 
 const (
@@ -21,12 +21,12 @@ const (
 )
 
 type Engine struct {
-	core.RealTimeSystem
+	simavionics.RealTimeSystem
 
 	n1  float64
 	egt float64
 
-	bus               core.EventBus
+	bus               simavionics.EventBus
 	n1StartTicker     *time.Ticker
 	n1ShutdownTicker  *time.Ticker
 	egtIgnitionTicker *time.Ticker
@@ -35,9 +35,9 @@ type Engine struct {
 	startChan chan bool
 }
 
-func NewEngine(ctx core.SimContext) *Engine {
+func NewEngine(ctx simavionics.SimContext) *Engine {
 	engine := &Engine{
-		RealTimeSystem: core.NewRealTimeSytem(ctx.RealTimeDilation),
+		RealTimeSystem: simavionics.NewRealTimeSytem(ctx.RealTimeDilation),
 		bus:            ctx.Bus,
 		startChan:      make(chan bool),
 	}

@@ -3,13 +3,13 @@ package apu
 import (
 	"testing"
 
-	"github.com/apoloval/simavionics/core"
+	simavionics "github.com/apoloval/simavionics"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestEngine_Start(t *testing.T) {
-	bus := core.NewDefaultEventBus()
-	engine := NewEngine(core.SimContext{bus, 100})
+	bus := simavionics.NewDefaultEventBus()
+	engine := NewEngine(simavionics.SimContext{bus, 100})
 
 	engine.Start()
 
@@ -18,7 +18,7 @@ func TestEngine_Start(t *testing.T) {
 	assert.Condition(t, func() bool { return maxEGT > 700 })
 }
 
-func waitForEngineStart(bus core.EventBus) (maxEGT float64) {
+func waitForEngineStart(bus simavionics.EventBus) (maxEGT float64) {
 	n1Chan := bus.Subscribe(EngineStateN1)
 	egtChan := bus.Subscribe(EngineStateEGT)
 	for {
