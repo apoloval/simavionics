@@ -8,9 +8,10 @@ import (
 
 	"fmt"
 
+	"github.com/apoloval/simavionics"
 	"github.com/apoloval/simavionics/a320"
 	"github.com/apoloval/simavionics/a320/apu"
-	"github.com/apoloval/simavionics"
+	"github.com/apoloval/simavionics/event/local"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -45,7 +46,7 @@ func main() {
 	defer font.Close()
 
 	log.Printf("[main] Initializing A320 simulator")
-	bus := simavionics.NewDefaultEventBus()
+	bus := local.NewEventBus()
 	ctx := simavionics.Context{bus, 1}
 	apusys := a320.NewAPU(ctx)
 	apusys.Start()
