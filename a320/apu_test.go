@@ -12,7 +12,7 @@ import (
 type APUTestSuite struct {
 	suite.Suite
 	core.TimeAsserts
-	bus *core.DefaultEventBus
+	bus *core.LocalEventBus
 	apu *APU
 }
 

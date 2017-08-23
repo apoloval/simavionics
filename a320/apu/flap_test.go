@@ -14,7 +14,7 @@ type FlapTestSuite struct {
 	suite.Suite
 	core.TimeAsserts
 
-	bus  *core.DefaultEventBus
+	bus  *core.LocalEventBus
 	flap *Flap
 }
 
