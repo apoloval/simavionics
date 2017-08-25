@@ -6,7 +6,6 @@ import (
 	"github.com/apoloval/simavionics"
 	"github.com/go-mangos/mangos"
 	"github.com/go-mangos/mangos/protocol/bus"
-	"github.com/go-mangos/mangos/transport/ipc"
 	"github.com/go-mangos/mangos/transport/tcp"
 )
 
@@ -83,8 +82,16 @@ func (bus *eventBus) publishRemote(event *simavionics.Event) {
 	}
 }
 
-func NewEventBus(masterNode bool, addrs []string) (simavionics.EventBus, error) {
-	socket, err := createSocket(masterNode, addrs)
+func NewMasterEventBus(localAddr string) (simavionics.EventBus, error) {
+	return NewEventBus(true, localAddr)
+}
+
+func NewSlaveEventBus(remoteAddr string) (simavionics.EventBus, error) {
+	return NewEventBus(false, remoteAddr)
+}
+
+func NewEventBus(masterNode bool, addr string) (simavionics.EventBus, error) {
+	socket, err := createSocket(masterNode, addr)
 	if err != nil {
 		return nil, err
 	}
@@ -102,31 +109,28 @@ func NewEventBus(masterNode bool, addrs []string) (simavionics.EventBus, error) 
 	return b, nil
 }
 
-func createSocket(masterNode bool, addrs []string) (mangos.Socket, error) {
+func createSocket(masterNode bool, addr string) (mangos.Socket, error) {
 	socket, err := bus.NewSocket()
 	if err != nil {
 		return nil, err
 	}
 
-	socket.AddTransport(ipc.NewTransport())
 	socket.AddTransport(tcp.NewTransport())
 	socket.SetOption(mangos.OptionReadQLen, 65535)
 	socket.SetOption(mangos.OptionWriteQLen, 65535)
 
-	for _, addr := range addrs {
-		if masterNode {
-			log.Printf("[bus.remote] Listing on %v", addr)
-			if err = socket.SetOption(mangos.OptionRaw, true); err != nil {
-				return nil, err
-			}
-			if err = socket.Listen(addr); err != nil {
-				return nil, err
-			}
-		} else {
-			log.Printf("[bus.remote] Dialing to %v", addr)
-			if err = socket.Dial(addr); err != nil {
-				return nil, err
-			}
+	if masterNode {
+		log.Printf("[bus.remote] Listing on %v", addr)
+		if err = socket.SetOption(mangos.OptionRaw, true); err != nil {
+			return nil, err
+		}
+		if err = socket.Listen(addr); err != nil {
+			return nil, err
+		}
+	} else {
+		log.Printf("[bus.remote] Dialing to %v", addr)
+		if err = socket.Dial(addr); err != nil {
+			return nil, err
 		}
 	}
 

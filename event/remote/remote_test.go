@@ -36,7 +36,7 @@ func TestEventBus_PublishSubscribeLocal(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			bus, _ := NewEventBus(true, []string{randomLocalTcpAddress()})
+			bus, _ := NewEventBus(true, randomLocalTcpAddress())
 			consumer := bus.Subscribe("foobar")
 			simavionics.PublishEvent(bus, "foobar", test.value)
 
@@ -48,9 +48,9 @@ func TestEventBus_PublishSubscribeLocal(t *testing.T) {
 
 func TestEventBus_PublishSubscribeRemotelyMaster(t *testing.T) {
 	addr := randomLocalTcpAddress()
-	bus1, _ := NewEventBus(true, []string{addr})
-	bus2, _ := NewEventBus(false, []string{addr})
-	bus3, _ := NewEventBus(false, []string{addr})
+	bus1, _ := NewMasterEventBus(addr)
+	bus2, _ := NewSlaveEventBus(addr)
+	bus3, _ := NewSlaveEventBus(addr)
 	time.Sleep(1000 * time.Millisecond)
 
 	c1 := bus2.Subscribe("foobar")
@@ -65,9 +65,9 @@ func TestEventBus_PublishSubscribeRemotelyMaster(t *testing.T) {
 
 func TestEventBus_PublishSubscribeRemotelySlave(t *testing.T) {
 	addr := randomLocalTcpAddress()
-	bus1, _ := NewEventBus(true, []string{addr})
-	bus2, _ := NewEventBus(false, []string{addr})
-	bus3, _ := NewEventBus(false, []string{addr})
+	bus1, _ := NewMasterEventBus(addr)
+	bus2, _ := NewSlaveEventBus(addr)
+	bus3, _ := NewSlaveEventBus(addr)
 	time.Sleep(1000 * time.Millisecond)
 
 	c1 := bus1.Subscribe("foobar")
@@ -81,44 +81,27 @@ func TestEventBus_PublishSubscribeRemotelySlave(t *testing.T) {
 }
 
 func BenchmarkEventBus_PublishSubscribeRemotely(b *testing.B) {
-	tests := []struct {
-		name string
-		addr func() string
-	}{
-		{
-			name: "Using TCP transport",
-			addr: randomLocalTcpAddress,
-		},
-		{
-			name: "Using IPC transport",
-			addr: randomLocalIpcAddress,
-		},
-	}
-	for _, test := range tests {
-		b.Run(test.name, func(b *testing.B) {
-			addr := test.addr()
-			bus1, _ := NewEventBus(true, []string{addr})
-			bus2, _ := NewEventBus(false, []string{addr})
-			time.Sleep(1000 * time.Millisecond)
+	addr := randomLocalTcpAddress()
+	bus1, _ := NewMasterEventBus(addr)
+	bus2, _ := NewSlaveEventBus(addr)
+	time.Sleep(1000 * time.Millisecond)
 
-			consumer := bus2.Subscribe("foobar")
+	consumer := bus2.Subscribe("foobar")
 
-			b.ResetTimer()
-			go func() {
-				for n := 0; n < b.N; n++ {
-					simavionics.PublishEvent(bus1, "foobar", 123456)
-				}
-			}()
+	b.ResetTimer()
+	go func() {
+		for n := 0; n < b.N; n++ {
+			simavionics.PublishEvent(bus1, "foobar", 123456)
+		}
+	}()
 
-			for n := 0; n < b.N; n++ {
-				<-consumer
-			}
-		})
+	for n := 0; n < b.N; n++ {
+		<-consumer
 	}
 }
 
 func BenchmarkEventBus_PublishSubscribeLocal(b *testing.B) {
-	bus, _ := NewEventBus(true, []string{randomLocalTcpAddress()})
+	bus, _ := NewEventBus(true, randomLocalTcpAddress())
 	c := bus.Subscribe("foobar")
 
 	b.ResetTimer()
@@ -136,12 +119,5 @@ func randomLocalTcpAddress() string {
 	rand.Seed(int64(time.Now().Nanosecond()))
 	port := 2000 + rand.Intn(6000)
 	addr := fmt.Sprintf("tcp://localhost:%d", port)
-	return addr
-}
-
-func randomLocalIpcAddress() string {
-	rand.Seed(int64(time.Now().Nanosecond()))
-	port := rand.Intn(65535)
-	addr := fmt.Sprintf("ipc://foobar:%d", port)
 	return addr
 }
