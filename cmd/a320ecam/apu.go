@@ -4,6 +4,7 @@ import (
 	"github.com/apoloval/simavionics"
 	"github.com/apoloval/simavionics/a320/apu"
 	"github.com/apoloval/simavionics/ui"
+	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -46,7 +47,7 @@ func newAPUPage(bus simavionics.EventBus, renderer *sdl.Renderer) (*apuPage, err
 		return nil, err
 	}
 
-	page.pointerTexture, err = ui.LoadTextureFromBMP(renderer, "assets/apu-gauge-pointer.bmp")
+	page.pointerTexture, err = img.LoadTexture(renderer, "assets/apu-gauge-pointer.png")
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +78,8 @@ func (p *apuPage) render(renderer *sdl.Renderer) {
 	renderer.Clear()
 	renderer.Copy(p.backgroundTexture, nil, nil)
 
-	renderer.CopyEx(p.pointerTexture, nil, &sdl.Rect{237, 232, 2, 45}, (p.n1*175.0/100.0)+60.0, &sdl.Point{0, 0}, sdl.FLIP_NONE)
-	renderer.CopyEx(p.pointerTexture, nil, &sdl.Rect{237, 322, 2, 45}, (p.egt*135.0/1000.0)+60.0, &sdl.Point{0, 0}, sdl.FLIP_NONE)
+	renderer.CopyEx(p.pointerTexture, nil, &sdl.Rect{234, 233, 5, 47}, (p.n1*170.0/100.0)+65.0, &sdl.Point{2, 1}, sdl.FLIP_NONE)
+	renderer.CopyEx(p.pointerTexture, nil, &sdl.Rect{234, 323, 5, 47}, (p.egt*125.0/1000.0)+65.0, &sdl.Point{2, 1}, sdl.FLIP_NONE)
 
 	p.n1Text.Render(240, 235)
 	p.egtText.Render(240, 325)

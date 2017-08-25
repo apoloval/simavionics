@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"log"
+
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -15,7 +17,9 @@ func NewDisplay(title string) (*Display, error) {
 	d := &Display{}
 
 	ttf.Init()
-	sdl.SetHintWithPriority(sdl.HINT_RENDER_SCALE_QUALITY, "best", sdl.HINT_OVERRIDE)
+	if !sdl.SetHintWithPriority(sdl.HINT_RENDER_SCALE_QUALITY, "best", sdl.HINT_OVERRIDE) {
+		log.Printf("[ui.display] Cannot set HINT_RENDER_SCALE_QUALITY value")
+	}
 
 	d.window, err = sdl.CreateWindow(
 		title,

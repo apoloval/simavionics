@@ -13,5 +13,8 @@ func LoadTextureFromBMP(render *sdl.Renderer, file string) (*sdl.Texture, error)
 	if err != nil {
 		return nil, err
 	}
+
+	texture.SetBlendMode(sdl.BLENDMODE_BLEND)
+
 	return texture, nil
 }
