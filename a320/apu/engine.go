@@ -80,7 +80,7 @@ func (engine *Engine) n1StartInc() {
 		engine.n1 = 100.0
 		removeTicker(&engine.n1StartTicker)
 	}
-	engine.bus.Publish(EngineStateN1, engine.n1)
+	simavionics.PublishEvent(engine.bus, EngineStateN1, engine.n1)
 }
 
 func (engine *Engine) egtStartInc() {
@@ -96,7 +96,7 @@ func (engine *Engine) egtStartInc() {
 		engine.egtDecayTicker = time.NewTicker(engine.TimeDilation.Dilated(engineTickInterval))
 	}
 
-	engine.bus.Publish(EngineStateEGT, engine.egt)
+	simavionics.PublishEvent(engine.bus, EngineStateEGT, engine.egt)
 }
 
 func (engine *Engine) egtStartDecay() {
@@ -106,7 +106,7 @@ func (engine *Engine) egtStartDecay() {
 		removeTicker(&engine.egtDecayTicker)
 	}
 
-	engine.bus.Publish(EngineStateEGT, engine.egt)
+	simavionics.PublishEvent(engine.bus, EngineStateEGT, engine.egt)
 }
 
 func tickerChan(ticker *time.Ticker) <-chan time.Time {

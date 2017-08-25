@@ -7,63 +7,44 @@ import (
 )
 
 type localEventBus struct {
-	subscribers   map[simavionics.EventName][]chan interface{}
-	publishChan   chan event
-	subscribeChan chan subscription
-}
-
-type event struct {
-	name  simavionics.EventName
-	value interface{}
+	publishChan   chan simavionics.Event
+	subscriptions *simavionics.EventSubscriptions
 }
 
 type subscription struct {
 	name simavionics.EventName
-	c    chan interface{}
+	c    chan simavionics.EventValue
 }
 
 func NewEventBus() simavionics.EventBus {
 	bus := &localEventBus{
-		subscribers:   make(map[simavionics.EventName][]chan interface{}),
-		publishChan:   make(chan event),
-		subscribeChan: make(chan subscription),
+		publishChan:   make(chan simavionics.Event),
+		subscriptions: simavionics.NewEventSubscriptions(),
 	}
-	go bus.run()
+	go bus.publisher()
 	return bus
 }
 
-func (bus *localEventBus) Subscribe(en simavionics.EventName) <-chan interface{} {
-	ec := make(chan interface{})
-	bus.subscribeChan <- subscription{en, ec}
-	return ec
+func (bus *localEventBus) Subscribe(name simavionics.EventName) <-chan simavionics.EventValue {
+	return bus.subscriptions.New(name)
 }
 
-func (bus *localEventBus) Publish(ev simavionics.EventName, value interface{}) {
-	bus.publishChan <- event{ev, value}
+func (bus *localEventBus) Publish(ev simavionics.Event) {
+	bus.publishChan <- ev
 }
 
-func (bus *localEventBus) run() {
+func (bus *localEventBus) publisher() {
 	log.Print("[bus] event bus is started")
 	for {
 		select {
 		case e := <-bus.publishChan:
 			bus.publish(e)
-		case s := <-bus.subscribeChan:
-			bus.subscribe(s.name, s.c)
 		}
 	}
 }
 
-func (bus *localEventBus) publish(ev event) {
-	log.Printf("[bus] Publishing event '%v': %v", ev.name, ev.value)
-	ss := bus.subscribers[ev.name]
-	for _, s := range ss {
-		s <- ev.value
-	}
-}
-
-func (bus *localEventBus) subscribe(en simavionics.EventName, ec chan interface{}) {
-	ss := bus.subscribers[en]
-	ss = append(ss, ec)
-	bus.subscribers[en] = ss
+func (bus *localEventBus) publish(ev simavionics.Event) {
+	bus.subscriptions.Each(ev.Name, func(c chan simavionics.EventValue) {
+		c <- ev.Value
+	})
 }

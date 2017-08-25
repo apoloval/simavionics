@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/apoloval/simavionics/a320/apu"
 	"github.com/apoloval/simavionics"
+	"github.com/apoloval/simavionics/a320/apu"
 )
 
 const (
@@ -51,7 +51,7 @@ type APU struct {
 	flap   *apu.Flap
 	engine *apu.Engine
 
-	apuMasterSwActionChan <-chan interface{}
+	apuMasterSwActionChan <-chan simavionics.EventValue
 }
 
 func NewAPU(ctx simavionics.Context) *APU {
@@ -69,7 +69,7 @@ func NewAPU(ctx simavionics.Context) *APU {
 }
 
 func (apu *APU) Start() {
-	apu.bus.Publish(apuActionMasterSwOn, true)
+	simavionics.PublishEvent(apu.bus, apuActionMasterSwOn, true)
 }
 
 func (apu *APU) run() {
@@ -77,7 +77,7 @@ func (apu *APU) run() {
 	for {
 		select {
 		case event := <-apu.apuMasterSwActionChan:
-			apu.handleMasterSw(event.(bool))
+			apu.handleMasterSw(event.Bool())
 		case action := <-apu.DeferredActionChan:
 			action()
 		}
@@ -101,6 +101,6 @@ func (apu *APU) updateMasterSw(on bool) {
 func (apu *APU) updateBool(en simavionics.EventName, value *bool, update bool) {
 	if *value != update {
 		*value = update
-		apu.bus.Publish(en, update)
+		simavionics.PublishEvent(apu.bus, en, update)
 	}
 }

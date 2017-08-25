@@ -64,13 +64,13 @@ func main() {
 	for {
 		select {
 		case v := <-n1Chan:
-			n1 = v.(float64)
+			n1 = v.Float64()
 			n1Text.set(int(n1))
 		case v := <-egtChan:
-			egt = v.(float64)
+			egt = v.Float64()
 			egtText.set(int(egt))
 		case v := <-flapOpenChan:
-			if v.(bool) {
+			if v.Bool() {
 				flapOpenText.set("FLAP OPEN")
 			} else {
 				flapOpenText.set("")

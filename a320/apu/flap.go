@@ -5,7 +5,7 @@ import (
 
 	"log"
 
-	simavionics "github.com/apoloval/simavionics"
+	"github.com/apoloval/simavionics"
 )
 
 const (
@@ -92,7 +92,7 @@ func (flap *Flap) doClose() {
 }
 
 func (flap *Flap) publishStatus(status bool) {
-	flap.bus.Publish(StatusFlapOpen, status)
+	simavionics.PublishEvent(flap.bus, StatusFlapOpen, status)
 }
 
 func (flap *Flap) tickerChan() <-chan time.Time {
