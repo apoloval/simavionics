@@ -27,8 +27,12 @@ type apuPage struct {
 	flapOpenText *ui.ValueRenderer
 }
 
-func newAPUPage(bus simavionics.EventBus, renderer *sdl.Renderer) (*apuPage, error) {
-	font, err := ttf.OpenFont("assets/fonts/Carlito-Regular.ttf", 18)
+func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error) {
+	renderer := display.Renderer()
+	positioner := display.Positioner()
+
+	fontSize := positioner.Map(ui.RectF{H: 0.0375})
+	font, err := ttf.OpenFont("assets/fonts/Carlito-Regular.ttf", int(fontSize.H))
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +46,7 @@ func newAPUPage(bus simavionics.EventBus, renderer *sdl.Renderer) (*apuPage, err
 		flapOpenText: ui.NewValueRenderer(renderer, font, ui.NewColor(greenColor)),
 	}
 
-	page.backgroundTexture, err = ui.LoadTextureFromBMP(renderer, "assets/apu-background.bmp")
+	page.backgroundTexture, err = img.LoadTexture(renderer, "assets/ecam-apu-background.png")
 	if err != nil {
 		return nil, err
 	}
@@ -73,17 +77,27 @@ func (p *apuPage) processEvents() {
 	}
 }
 
-func (p *apuPage) render(renderer *sdl.Renderer) {
+func (p *apuPage) render(display *ui.Display) {
+	renderer := display.Renderer()
+	positioner := display.Positioner()
+
 	renderer.SetDrawColor(0, 0, 0, 255)
 	renderer.Clear()
 	renderer.Copy(p.backgroundTexture, nil, nil)
 
-	renderer.CopyEx(p.pointerTexture, nil, &sdl.Rect{234, 233, 5, 47}, (p.n1*170.0/100.0)+65.0, &sdl.Point{2, 1}, sdl.FLIP_NONE)
-	renderer.CopyEx(p.pointerTexture, nil, &sdl.Rect{234, 323, 5, 47}, (p.egt*125.0/1000.0)+65.0, &sdl.Point{2, 1}, sdl.FLIP_NONE)
+	n1PointerRect := positioner.Map(ui.RectF{X: 0.365625, Y: 0.485416, W: 0.007812, H: 0.097917})
+	egtPointerRect := positioner.Map(ui.RectF{X: 0.365625, Y: 0.672916, W: 0.007812, H: 0.097917})
 
-	p.n1Text.Render(240, 235)
-	p.egtText.Render(240, 325)
-	p.flapOpenText.Render(370, 270)
+	renderer.CopyEx(p.pointerTexture, nil, &n1PointerRect, (p.n1*170.0/100.0)+65.0, &sdl.Point{2, 1}, sdl.FLIP_NONE)
+	renderer.CopyEx(p.pointerTexture, nil, &egtPointerRect, (p.egt*125.0/1000.0)+65.0, &sdl.Point{2, 1}, sdl.FLIP_NONE)
+
+	n1TextRect := positioner.Map(ui.RectF{X: 0.375, Y: 0.489583})
+	egtTextRect := positioner.Map(ui.RectF{X: 0.375, Y: 0.677083})
+	flapOpenTextRect := positioner.Map(ui.RectF{X: 0.578125, Y: 0.5625})
+
+	p.n1Text.Render(n1TextRect.X, n1TextRect.Y)
+	p.egtText.Render(egtTextRect.X, egtTextRect.Y)
+	p.flapOpenText.Render(flapOpenTextRect.X, flapOpenTextRect.Y)
 
 	renderer.Present()
 }

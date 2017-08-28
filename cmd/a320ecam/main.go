@@ -10,7 +10,7 @@ import (
 
 type page interface {
 	processEvents()
-	render(renderer *sdl.Renderer)
+	render(display *ui.Display)
 }
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 		panic(err)
 	}
 
-	apuPage, err := newAPUPage(bus, display.Renderer())
+	apuPage, err := newAPUPage(bus, display)
 	if err != nil {
 		panic(nil)
 	}
@@ -38,9 +38,9 @@ func main() {
 		apuPage.processEvents()
 
 		if disconnPage.isDisconnected {
-			disconnPage.render(display.Renderer())
+			disconnPage.render(display)
 		} else {
-			apuPage.render(display.Renderer())
+			apuPage.render(display)
 		}
 
 		sdl.PollEvent()
