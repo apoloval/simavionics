@@ -31,6 +31,12 @@ func (ev EventValue) Int() int {
 	return value
 }
 
+func (ev EventValue) Int64() int64 {
+	var value int64
+	ev.decoder().Decode(&value)
+	return value
+}
+
 func (ev EventValue) Float64() float64 {
 	var value float64
 	ev.decoder().Decode(&value)

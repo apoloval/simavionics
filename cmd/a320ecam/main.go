@@ -31,10 +31,18 @@ func main() {
 	if err != nil {
 		panic(nil)
 	}
+	disconnPage := newDisconnectionPage(bus)
 
 	for {
+		disconnPage.processEvents()
 		apuPage.processEvents()
-		apuPage.render(display.Renderer())
+
+		if disconnPage.isDisconnected {
+			disconnPage.render(display.Renderer())
+		} else {
+			apuPage.render(display.Renderer())
+		}
+
 		sdl.PollEvent()
 	}
 }

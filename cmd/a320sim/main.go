@@ -6,6 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"time"
+
 	"github.com/apoloval/simavionics"
 	"github.com/apoloval/simavionics/a320"
 	"github.com/apoloval/simavionics/event/remote"
@@ -20,6 +22,7 @@ func main() {
 	}
 
 	ctx := simavionics.Context{bus, 1}
+	simavionics.NewHeartbeat(bus, 250*time.Millisecond)
 	apusys := a320.NewAPU(ctx)
 	apusys.Start()
 	waitForStopSignal()
