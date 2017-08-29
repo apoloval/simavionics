@@ -1,13 +1,14 @@
 package remote
 
 import (
-	"log"
-
 	"github.com/apoloval/simavionics"
 	"github.com/go-mangos/mangos"
 	"github.com/go-mangos/mangos/protocol/bus"
 	"github.com/go-mangos/mangos/transport/tcp"
+	"github.com/op/go-logging"
 )
+
+var log = logging.MustGetLogger("bus.remote")
 
 type eventBus struct {
 	masterNode    bool
@@ -55,12 +56,12 @@ func (bus *eventBus) receiver() {
 		var ev *simavionics.Event
 		msg, err := bus.socket.RecvMsg()
 		if err != nil {
-			log.Printf("[bus.remote] Failed to receive message from socket: %v", err)
+			log.Error("Failed to receive message from socket: ", err)
 		}
 
 		ev, err = simavionics.DecodeEvent(msg.Body)
 		if err != nil {
-			log.Printf("[bus.remote] Failed to decode message from socket: %v", err)
+			log.Error("Failed to decode message from socket: ", err)
 		}
 		bus.publishLocal(ev)
 
@@ -78,7 +79,7 @@ func (bus *eventBus) publishLocal(event *simavionics.Event) {
 
 func (bus *eventBus) publishRemote(event *simavionics.Event) {
 	if err := bus.socket.Send(event.Encode()); err != nil {
-		log.Printf("[bus.remote]: failed to publish on socket %v", bus.socket)
+		log.Error("Failed to publish on socket ", bus.socket)
 	}
 }
 
@@ -120,7 +121,7 @@ func createSocket(masterNode bool, addr string) (mangos.Socket, error) {
 	socket.SetOption(mangos.OptionWriteQLen, 65535)
 
 	if masterNode {
-		log.Printf("[bus.remote] Listing on %v", addr)
+		log.Info("Listing on ", addr)
 		if err = socket.SetOption(mangos.OptionRaw, true); err != nil {
 			return nil, err
 		}
@@ -128,7 +129,7 @@ func createSocket(masterNode bool, addr string) (mangos.Socket, error) {
 			return nil, err
 		}
 	} else {
-		log.Printf("[bus.remote] Dialing to %v", addr)
+		log.Info("Dialing to ", addr)
 		if err = socket.Dial(addr); err != nil {
 			return nil, err
 		}

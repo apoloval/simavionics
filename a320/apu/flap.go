@@ -3,8 +3,6 @@ package apu
 import (
 	"time"
 
-	"log"
-
 	"github.com/apoloval/simavionics"
 )
 
@@ -79,13 +77,13 @@ func (flap *Flap) updatePosition() {
 }
 
 func (flap *Flap) open() {
-	log.Printf("[apu/flap] Opening flap")
+	log.Info("Opening flap")
 	flap.speed = flapSpeed
 	flap.startTicker()
 }
 
 func (flap *Flap) doClose() {
-	log.Printf("[apu/flap] Closing flap")
+	log.Info("Closing flap")
 	flap.speed = -flapSpeed
 	flap.startTicker()
 	flap.publishStatus(false)

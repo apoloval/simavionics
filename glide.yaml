@@ -3,3 +3,4 @@ import:
 - package: github.com/stretchr/testify
 - package: github.com/veandco/go-sdl2/sdl
 - package: github.com/chzyer/readline
+- package: github.com/op/go-logging

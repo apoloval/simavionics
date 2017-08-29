@@ -1,7 +1,6 @@
 package a320
 
 import (
-	"log"
 	"time"
 
 	"github.com/apoloval/simavionics"
@@ -9,12 +8,12 @@ import (
 )
 
 const (
-	apuPowerOff apuStatus = "apu/status/power_off"
-	apuPowerOn  apuStatus = "apu/status/power_on"
+	apuPowerOff apuStatus = "a/status/power_off"
+	apuPowerOn  apuStatus = "a/status/power_on"
 
-	ApuActionMasterSwOn simavionics.EventName = "apu/action/master_switch_on"
+	ApuActionMasterSwOn simavionics.EventName = "a/action/master_switch_on"
 
-	ApuStateMasterSwOn simavionics.EventName = "apu/state/master_switch_on"
+	ApuStateMasterSwOn simavionics.EventName = "a/state/master_switch_on"
 
 	apuFlapOpenTime = 6 * time.Second
 )
@@ -55,7 +54,7 @@ type APU struct {
 }
 
 func NewAPU(ctx simavionics.Context) *APU {
-	apu := &APU{
+	a := &APU{
 		RealTimeSystem: simavionics.NewRealTimeSytem(ctx.RealTimeDilation),
 		status:         apuPowerOff,
 		bus:            ctx.Bus,
@@ -64,43 +63,43 @@ func NewAPU(ctx simavionics.Context) *APU {
 
 		apuMasterSwActionChan: ctx.Bus.Subscribe(ApuActionMasterSwOn),
 	}
-	go apu.run()
-	return apu
+	go a.run()
+	return a
 }
 
-func (apu *APU) Start() {
-	simavionics.PublishEvent(apu.bus, ApuActionMasterSwOn, true)
+func (a *APU) Start() {
+	simavionics.PublishEvent(a.bus, ApuActionMasterSwOn, true)
 }
 
-func (apu *APU) run() {
-	log.Printf("[apu] Starting a new APU module")
+func (a *APU) run() {
+	log.Info("Starting a new APU module")
 	for {
 		select {
-		case event := <-apu.apuMasterSwActionChan:
-			apu.handleMasterSw(event.Bool())
-		case action := <-apu.DeferredActionChan:
+		case event := <-a.apuMasterSwActionChan:
+			a.handleMasterSw(event.Bool())
+		case action := <-a.DeferredActionChan:
 			action()
 		}
 	}
 }
 
-func (apu *APU) handleMasterSw(on bool) {
-	log.Printf("[apu] Received a master switch action: on -> %v", on)
-	if on && apu.status == apuPowerOff {
-		apu.status = apuPowerOn
-		apu.updateMasterSw(true)
-		apu.flap.Open()
-		apu.engine.Start()
+func (a *APU) handleMasterSw(on bool) {
+	log.Info("Received a master switch action: on -> ", on)
+	if on && a.status == apuPowerOff {
+		a.status = apuPowerOn
+		a.updateMasterSw(true)
+		a.flap.Open()
+		a.engine.Start()
 	}
 }
 
-func (apu *APU) updateMasterSw(on bool) {
-	apu.updateBool(ApuStateMasterSwOn, &apu.state.masterSwitch, on)
+func (a *APU) updateMasterSw(on bool) {
+	a.updateBool(ApuStateMasterSwOn, &a.state.masterSwitch, on)
 }
 
-func (apu *APU) updateBool(en simavionics.EventName, value *bool, update bool) {
+func (a *APU) updateBool(en simavionics.EventName, value *bool, update bool) {
 	if *value != update {
 		*value = update
-		simavionics.PublishEvent(apu.bus, en, update)
+		simavionics.PublishEvent(a.bus, en, update)
 	}
 }

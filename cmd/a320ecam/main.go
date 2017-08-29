@@ -1,10 +1,10 @@
 package main
 
 import (
-	"log"
-
+	"github.com/apoloval/simavionics"
 	"github.com/apoloval/simavionics/event/remote"
 	"github.com/apoloval/simavionics/ui"
+	"github.com/op/go-logging"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -14,22 +14,25 @@ type page interface {
 }
 
 func main() {
+	log := logging.MustGetLogger("main")
+	simavionics.EnableLogging()
+
 	var err error
-	log.Printf("[main] Initializing display")
+	log.Info("Initializing display")
 	display, err := ui.NewDisplay("SimAvionics A320 Lower ECAM")
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
-	log.Printf("[main] Initializing SimAvionics remote bus")
+	log.Info("Initializing SimAvionics remote bus")
 	bus, err := remote.NewSlaveEventBus("tcp://localhost:7001")
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	apuPage, err := newAPUPage(bus, display)
 	if err != nil {
-		panic(nil)
+		log.Panic(nil)
 	}
 	disconnPage := newDisconnectionPage(bus)
 

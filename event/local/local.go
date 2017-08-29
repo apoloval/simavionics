@@ -1,10 +1,11 @@
 package local
 
 import (
-	"log"
-
 	"github.com/apoloval/simavionics"
+	"github.com/op/go-logging"
 )
+
+var log = logging.MustGetLogger("event.local")
 
 type localEventBus struct {
 	publishChan   chan simavionics.Event
@@ -34,7 +35,7 @@ func (bus *localEventBus) Publish(ev simavionics.Event) {
 }
 
 func (bus *localEventBus) publisher() {
-	log.Print("[bus] event bus is started")
+	log.Info("Event bus is started")
 	for {
 		select {
 		case e := <-bus.publishChan:
