@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	simavionics.EnableLogging()
+	simavionics.DisableLogging()
 
 	bus, err := remote.NewMasterEventBus("tcp://localhost:7001")
 	if err != nil {
