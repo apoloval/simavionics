@@ -1,10 +1,17 @@
-hash: 72b690932a94e2a00f7c366108d7d68f040ee051c8ea3d0d40410d87c6d941eb
-updated: 2017-08-21T19:08:35.725766465+02:00
+hash: 2e1c7fd0dca5012be8919e64e64f33c4a8eabcd0cf2ce68dee47440c568e6723
+updated: 2017-08-29T09:05:13.866321006+02:00
 imports:
+- name: github.com/chzyer/readline
+  version: 41eea22f717c616615e1e59aa06cf831f9901f35
 - name: github.com/davecgh/go-spew
   version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
   subpackages:
   - spew
+- name: github.com/go-mangos/mangos
+  version: e3181ec4a2a556d80619da0f841e35c2007733af
+  subpackages:
+  - protocol/bus
+  - transport/tcp
 - name: github.com/pmezard/go-difflib
   version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:
@@ -18,5 +25,11 @@ imports:
 - name: github.com/veandco/go-sdl2
   version: 58181ad731504b17f2edf595d4aba0ff2b799185
   subpackages:
+  - img
   - sdl
+  - ttf
+- name: golang.org/x/sys
+  version: 2d6f6f883a06fc0d5f4b14a81e4c28705ea64c15
+  subpackages:
+  - unix
 testImports: []

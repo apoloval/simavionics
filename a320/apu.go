@@ -12,9 +12,9 @@ const (
 	apuPowerOff apuStatus = "apu/status/power_off"
 	apuPowerOn  apuStatus = "apu/status/power_on"
 
-	apuActionMasterSwOn simavionics.EventName = "apu/action/master_switch_on"
+	ApuActionMasterSwOn simavionics.EventName = "apu/action/master_switch_on"
 
-	apuStateMasterSwOn simavionics.EventName = "apu/state/master_switch_on"
+	ApuStateMasterSwOn simavionics.EventName = "apu/state/master_switch_on"
 
 	apuFlapOpenTime = 6 * time.Second
 )
@@ -62,14 +62,14 @@ func NewAPU(ctx simavionics.Context) *APU {
 		flap:           apu.NewFlap(ctx),
 		engine:         apu.NewEngine(ctx),
 
-		apuMasterSwActionChan: ctx.Bus.Subscribe(apuActionMasterSwOn),
+		apuMasterSwActionChan: ctx.Bus.Subscribe(ApuActionMasterSwOn),
 	}
 	go apu.run()
 	return apu
 }
 
 func (apu *APU) Start() {
-	simavionics.PublishEvent(apu.bus, apuActionMasterSwOn, true)
+	simavionics.PublishEvent(apu.bus, ApuActionMasterSwOn, true)
 }
 
 func (apu *APU) run() {
@@ -85,8 +85,8 @@ func (apu *APU) run() {
 }
 
 func (apu *APU) handleMasterSw(on bool) {
+	log.Printf("[apu] Received a master switch action: on -> %v", on)
 	if on && apu.status == apuPowerOff {
-		log.Printf("[apu] Received a master switch action: on -> %v", on)
 		apu.status = apuPowerOn
 		apu.updateMasterSw(true)
 		apu.flap.Open()
@@ -95,7 +95,7 @@ func (apu *APU) handleMasterSw(on bool) {
 }
 
 func (apu *APU) updateMasterSw(on bool) {
-	apu.updateBool(apuStateMasterSwOn, &apu.state.masterSwitch, on)
+	apu.updateBool(ApuStateMasterSwOn, &apu.state.masterSwitch, on)
 }
 
 func (apu *APU) updateBool(en simavionics.EventName, value *bool, update bool) {
