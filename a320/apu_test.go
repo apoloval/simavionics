@@ -25,9 +25,9 @@ func (suite *APUTestSuite) SetupTest() {
 }
 
 func (suite *APUTestSuite) TestSwitchOn() {
-	masterSwChan := suite.bus.Subscribe(ApuStateMasterSwOn)
+	masterSwChan := suite.bus.Subscribe(apu.EventPower)
 	flapOpenChan := suite.bus.Subscribe(apu.StatusFlapOpen)
-	suite.bus.Publish(ApuActionMasterSwOn, true)
+	simavionics.PublishEvent(suite.bus, apu.EventMasterSwitch, true)
 
 	ev := <-masterSwChan
 	assert.Equal(suite.T(), true, ev.Bool())

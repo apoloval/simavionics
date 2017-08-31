@@ -38,9 +38,9 @@ func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error)
 	}
 
 	page := &apuPage{
-		n1Chan:       bus.Subscribe(apu.EngineStateN1),
-		egtChan:      bus.Subscribe(apu.EngineStateEGT),
-		flapOpenChan: bus.Subscribe(apu.StatusFlapOpen),
+		n1Chan:       bus.Subscribe(apu.EventEngineN1),
+		egtChan:      bus.Subscribe(apu.EventEngineEGT),
+		flapOpenChan: bus.Subscribe(apu.EventFlap),
 		n1Text:       ui.NewValueRenderer(renderer, font, ui.NewColor(greenColor)),
 		egtText:      ui.NewValueRenderer(renderer, font, ui.NewColor(greenColor)),
 		flapOpenText: ui.NewValueRenderer(renderer, font, ui.NewColor(greenColor)),

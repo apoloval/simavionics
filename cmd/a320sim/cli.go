@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/apoloval/simavionics"
-	"github.com/apoloval/simavionics/a320"
+	"github.com/apoloval/simavionics/a320/apu"
 	"github.com/chzyer/readline"
 	"github.com/op/go-logging"
 )
@@ -112,9 +112,9 @@ func (c *CLI) Log(args []string) {
 func (c *CLI) Apu(args []string) {
 	switch {
 	case argsMatch(args, "master", "on"):
-		simavionics.PublishEvent(c.bus, a320.ApuActionMasterSwOn, true)
+		simavionics.PublishEvent(c.bus, apu.EventMasterSwitch, true)
 	case argsMatch(args, "master", "off"):
-		simavionics.PublishEvent(c.bus, a320.ApuActionMasterSwOn, false)
+		simavionics.PublishEvent(c.bus, apu.EventMasterSwitch, false)
 	default:
 		printSyntaxError("apu master (on|off)")
 	}

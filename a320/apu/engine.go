@@ -7,9 +7,6 @@ import (
 )
 
 const (
-	EngineStateN1  = "apu/state/engine/n1"
-	EngineStateEGT = "apu/state/engine/egt"
-
 	engineTickInterval         = 50 * time.Millisecond
 	engineN1StartSpeed         = 0.1  // points per tick
 	engineEGTIgnitionSlowSpeed = 0.25 // C degrees per tick
@@ -80,7 +77,7 @@ func (engine *Engine) n1StartInc() {
 		engine.n1 = 100.0
 		removeTicker(&engine.n1StartTicker)
 	}
-	simavionics.PublishEvent(engine.bus, EngineStateN1, engine.n1)
+	simavionics.PublishEvent(engine.bus, EventEngineN1, engine.n1)
 }
 
 func (engine *Engine) egtStartInc() {
@@ -96,7 +93,7 @@ func (engine *Engine) egtStartInc() {
 		engine.egtDecayTicker = time.NewTicker(engine.TimeDilation.Dilated(engineTickInterval))
 	}
 
-	simavionics.PublishEvent(engine.bus, EngineStateEGT, engine.egt)
+	simavionics.PublishEvent(engine.bus, EventEngineEGT, engine.egt)
 }
 
 func (engine *Engine) egtStartDecay() {
@@ -106,7 +103,7 @@ func (engine *Engine) egtStartDecay() {
 		removeTicker(&engine.egtDecayTicker)
 	}
 
-	simavionics.PublishEvent(engine.bus, EngineStateEGT, engine.egt)
+	simavionics.PublishEvent(engine.bus, EventEngineEGT, engine.egt)
 }
 
 func tickerChan(ticker *time.Ticker) <-chan time.Time {

@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	simavionics "github.com/apoloval/simavionics"
-	"github.com/apoloval/simavionics/event/local"
 	"github.com/stretchr/testify/assert"
+	"github.com/apoloval/simavionics/event/local"
 )
 
 func TestEngine_Start(t *testing.T) {
@@ -20,8 +20,8 @@ func TestEngine_Start(t *testing.T) {
 }
 
 func waitForEngineStart(bus simavionics.EventBus) (maxEGT float64) {
-	n1Chan := bus.Subscribe(EngineStateN1)
-	egtChan := bus.Subscribe(EngineStateEGT)
+	n1Chan := bus.Subscribe(EventEngineN1)
+	egtChan := bus.Subscribe(EventEngineEGT)
 	for {
 		select {
 		case n1 := <-n1Chan:

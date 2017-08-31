@@ -7,8 +7,6 @@ import (
 )
 
 const (
-	StatusFlapOpen = "apu/status/flap/open"
-
 	flapTickInterval = 100 * time.Millisecond
 	flapSpeed        = 1.0 / 60.0 // positions per tick
 )
@@ -90,7 +88,7 @@ func (flap *Flap) doClose() {
 }
 
 func (flap *Flap) publishStatus(status bool) {
-	simavionics.PublishEvent(flap.bus, StatusFlapOpen, status)
+	simavionics.PublishEvent(flap.bus, EventFlap, status)
 }
 
 func (flap *Flap) tickerChan() <-chan time.Time {

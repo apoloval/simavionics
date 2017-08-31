@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/apoloval/simavionics"
-	"github.com/apoloval/simavionics/event/local"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/apoloval/simavionics/event/local"
 )
 
 type FlapTestSuite struct {
@@ -27,7 +27,7 @@ func (suite *FlapTestSuite) SetupTest() {
 }
 
 func (suite *FlapTestSuite) TestOpenAndClose() {
-	c := suite.bus.Subscribe(StatusFlapOpen)
+	c := suite.bus.Subscribe(EventFlap)
 	suite.flap.Open()
 
 	suite.AssertElapsed(6*time.Second, func() {
