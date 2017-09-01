@@ -23,7 +23,7 @@ func (bus *eventBus) Subscribe(ev simavionics.EventName) <-chan simavionics.Even
 }
 
 func (bus *eventBus) Publish(ev simavionics.Event) {
-	log.Notice("Publishing event", ev.Name, "with value", ev.Value)
+	log.Debug("Publishing event", ev.Name, "with value", ev.Value)
 	bus.localPubChan <- &ev
 	bus.remotePubChan <- &ev
 }

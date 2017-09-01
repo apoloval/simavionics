@@ -19,27 +19,27 @@ type Flap struct {
 	ticker   *time.Ticker
 	bus      simavionics.EventBus
 
-	openChan  chan bool
-	closeChan chan bool
+	openChan  chan struct{}
+	closeChan chan struct{}
 }
 
 func NewFlap(ctx simavionics.Context) *Flap {
 	flap := &Flap{
 		RealTimeSystem: simavionics.NewRealTimeSytem(ctx.RealTimeDilation),
 		bus:            ctx.Bus,
-		openChan:       make(chan bool),
-		closeChan:      make(chan bool),
+		openChan:       make(chan struct{}),
+		closeChan:      make(chan struct{}),
 	}
 	go flap.run()
 	return flap
 }
 
 func (flap *Flap) Open() {
-	flap.openChan <- true
+	flap.openChan <- struct{}{}
 }
 
 func (flap *Flap) Close() {
-	flap.closeChan <- true
+	flap.closeChan <- struct{}{}
 }
 
 func (flap *Flap) run() {
@@ -56,17 +56,18 @@ func (flap *Flap) run() {
 }
 
 func (flap *Flap) updatePosition() {
+	flap.position += flap.speed
 	if flap.speed > 0.0 {
-		flap.position += flap.speed
 		if flap.position >= 1.0 {
+			log.Notice("Flap is fully open")
 			flap.position = 1.0
 			flap.speed = 0.0
 			flap.stopTicker()
 			flap.publishStatus(true)
 		}
 	} else {
-		flap.position -= flap.speed
 		if flap.position <= 0.0 {
+			log.Notice("Flap is fully closed")
 			flap.position = 0.0
 			flap.speed = 0.0
 			flap.stopTicker()
@@ -75,13 +76,13 @@ func (flap *Flap) updatePosition() {
 }
 
 func (flap *Flap) open() {
-	log.Info("Opening flap")
+	log.Notice("Opening flap")
 	flap.speed = flapSpeed
 	flap.startTicker()
 }
 
 func (flap *Flap) doClose() {
-	log.Info("Closing flap")
+	log.Notice("Closing flap")
 	flap.speed = -flapSpeed
 	flap.startTicker()
 	flap.publishStatus(false)

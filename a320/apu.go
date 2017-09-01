@@ -62,6 +62,15 @@ func (a *APU) handleMasterSw(on bool) {
 		simavionics.PublishEvent(a.bus, apu.EventPower, true)
 		a.powered = true
 		a.flap.Open()
+	} else {
+		if !a.powered {
+			log.Notice("Ignoring master switch off, already de-energized")
+			return
+		}
+		simavionics.PublishEvent(a.bus, apu.EventPower, false)
+		a.powered = false
+		a.engine.Shutdown()
+		a.flap.Close()
 	}
 }
 

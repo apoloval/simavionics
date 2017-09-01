@@ -28,7 +28,11 @@ func (vr *ValueRenderer) SetValue(v interface{}) {
 		if vr.texture != nil {
 			vr.texture.Destroy()
 		}
-		texture, w, h, err := vr.renderText(fmt.Sprintf("%v", vr.value))
+		text := fmt.Sprintf("%v", vr.value)
+		if len(text) == 0 {
+			text = " "
+		}
+		texture, w, h, err := vr.renderText(text)
 		if err != nil {
 			panic(err)
 		}
