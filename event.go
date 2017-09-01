@@ -95,7 +95,7 @@ func (s *EventSubscriptions) New(event EventName) chan EventValue {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	c := make(chan EventValue)
+	c := make(chan EventValue, 64)
 	ss := s.subscriptions[event]
 	ss = append(ss, c)
 	s.subscriptions[event] = ss

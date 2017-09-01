@@ -8,94 +8,66 @@ import (
 )
 
 const (
-	statusPowerOn apuStatus = iota
-	statusPowerOff
-
 	apuFlapOpenTime = 6 * time.Second
 )
 
 type apuStatus int
 
-type apuState struct {
-	// Engine parameters
-	speed float64
-	egt   float64
-
-	// Bleed air pressure
-	bleed float64
-
-	// ECB signals
-	masterSwitch  bool
-	startBtnOn    bool
-	startBtnAvail bool
-	flapOpen      bool
-	fuelLowPre    bool
-	lowOilLevel   bool
-
-	// AC generator
-	gen GenState
-}
-
 type APU struct {
-	simavionics.RealTimeSystem
-
-	state  apuState
-	status apuStatus
+	powered bool
 
 	bus    simavionics.EventBus
 	flap   *apu.Flap
 	engine *apu.Engine
 
-	apuMasterSwActionChan <-chan simavionics.EventValue
+	eventChanMasterSwitch <-chan simavionics.EventValue
+	eventChanStartButton  <-chan simavionics.EventValue
 }
 
 func NewAPU(ctx simavionics.Context) *APU {
 	a := &APU{
-		RealTimeSystem: simavionics.NewRealTimeSytem(ctx.RealTimeDilation),
-		status:         statusPowerOff,
-		bus:            ctx.Bus,
-		flap:           apu.NewFlap(ctx),
-		engine:         apu.NewEngine(ctx),
+		bus:    ctx.Bus,
+		flap:   apu.NewFlap(ctx),
+		engine: apu.NewEngine(ctx),
 
-		apuMasterSwActionChan: ctx.Bus.Subscribe(apu.EventMasterSwitch),
+		eventChanMasterSwitch: ctx.Bus.Subscribe(apu.EventMasterSwitch),
+		eventChanStartButton:  ctx.Bus.Subscribe(apu.EventStartButton),
 	}
 	go a.run()
 	return a
 }
 
-func (a *APU) Start() {
-	simavionics.PublishEvent(a.bus, apu.EventMasterSwitch, true)
+func (a *APU) MasterSwitch(value bool) {
+	simavionics.PublishEvent(a.bus, apu.EventMasterSwitch, value)
 }
 
 func (a *APU) run() {
-	log.Info("Starting a new APU module")
+	log.Notice("Starting a new APU module")
 	for {
 		select {
-		case event := <-a.apuMasterSwActionChan:
+		case event := <-a.eventChanMasterSwitch:
 			a.handleMasterSw(event.Bool())
-		case action := <-a.DeferredActionChan:
-			action()
+		case event := <-a.eventChanStartButton:
+			a.handleStartButton(event.Bool())
 		}
 	}
 }
-
 func (a *APU) handleMasterSw(on bool) {
-	log.Info("Received a master switch action: on -> ", on)
-	if on && a.status == statusPowerOff {
-		a.status = statusPowerOn
-		a.updateMasterSw(true)
+	log.Notice("Received a master switch event:", on)
+	if on {
+		if a.powered {
+			log.Notice("Ignoring master switch on, already energized")
+			return
+		}
+		simavionics.PublishEvent(a.bus, apu.EventPower, true)
+		a.powered = true
 		a.flap.Open()
-		a.engine.Start()
 	}
 }
 
-func (a *APU) updateMasterSw(on bool) {
-	a.updateBool(apu.EventPower, &a.state.masterSwitch, on)
-}
-
-func (a *APU) updateBool(en simavionics.EventName, value *bool, update bool) {
-	if *value != update {
-		*value = update
-		simavionics.PublishEvent(a.bus, en, update)
+func (a *APU) handleStartButton(pressed bool) {
+	log.Notice("Received a start button event:", pressed)
+	if a.powered {
+		a.engine.Start()
 	}
 }
