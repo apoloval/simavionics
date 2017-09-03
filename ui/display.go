@@ -6,11 +6,6 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
-const (
-	DisplayWidth  = 1024
-	DisplayHeight = 768
-)
-
 var log = logging.MustGetLogger("display")
 
 type Display struct {
@@ -19,10 +14,10 @@ type Display struct {
 	positioner Positioner
 }
 
-func NewDisplay(title string) (*Display, error) {
+func NewDisplay(title string, width, height uint) (*Display, error) {
 	var err error
 	d := &Display{
-		positioner: NewPositioner(DisplayWidth, DisplayHeight, 1.0, 1.0),
+		positioner: NewPositioner(int32(width), int32(height), 1.0, 1.0),
 	}
 
 	ttf.Init()
@@ -33,7 +28,7 @@ func NewDisplay(title string) (*Display, error) {
 	d.window, err = sdl.CreateWindow(
 		title,
 		sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-		DisplayWidth, DisplayHeight,
+		int(width), int(height),
 		sdl.WINDOW_SHOWN,
 	)
 	if err != nil {

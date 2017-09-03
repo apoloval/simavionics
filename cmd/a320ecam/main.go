@@ -18,8 +18,13 @@ func main() {
 	simavionics.EnableLogging()
 
 	var err error
+	cfg, err := loadConfig()
+	if err != nil {
+		log.Panic(err)
+	}
+
 	log.Info("Initializing display")
-	display, err := ui.NewDisplay("SimAvionics A320 Lower ECAM")
+	display, err := ui.NewDisplay("SimAvionics A320 Lower ECAM", cfg.width, cfg.height)
 	if err != nil {
 		log.Panic(err)
 	}
