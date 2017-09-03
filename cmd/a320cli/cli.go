@@ -3,14 +3,9 @@ package main
 import (
 	"strings"
 
-	"os"
-	"os/signal"
-	"syscall"
-
 	"github.com/apoloval/simavionics"
 	"github.com/apoloval/simavionics/a320/apu"
 	"github.com/chzyer/readline"
-	"github.com/op/go-logging"
 )
 
 type CLI struct {
@@ -55,8 +50,6 @@ func (c *CLI) Run() {
 			c.Apu(args)
 		case "pub":
 			c.Pub(args)
-		case "log":
-			c.Log(args)
 		case "exit", "quit":
 			goto exit
 		default:
@@ -81,32 +74,6 @@ func (c *CLI) Pub(args []string) {
 		return
 	}
 	simavionics.PublishEvent(c.bus, event, value)
-}
-
-func (c *CLI) Log(args []string) {
-	var level = logging.NOTICE
-	switch {
-	case argsMatch(args, "notice"):
-		level = logging.NOTICE
-	case argsMatch(args, "info"):
-		level = logging.INFO
-	case argsMatch(args, "warning"):
-		level = logging.WARNING
-	case argsMatch(args, "error"):
-		level = logging.ERROR
-	case len(args) == 0:
-	default:
-		printSyntaxError("log [notice|info|warning|error]")
-	}
-	println("You are entering in the log viewing mode.")
-	println("Press CTRL+C to go back to the simulation console.")
-	println()
-	simavionics.EnableLoggingLevel(level)
-	waitForStopSignal()
-	simavionics.DisableLogging()
-	println()
-	println("Exiting log viewing mode and going back to simulation console.")
-	println()
 }
 
 func (c *CLI) Apu(args []string) {
@@ -162,10 +129,4 @@ func printSyntaxError(usages ...string) {
 	for _, u := range usages {
 		println("   ", u)
 	}
-}
-
-func waitForStopSignal() {
-	sigchan := make(chan os.Signal, 1)
-	signal.Notify(sigchan, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
-	<-sigchan
 }

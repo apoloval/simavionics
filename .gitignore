@@ -1,5 +1,6 @@
 .idea/
 bin/
 vendor/
+/a320cli
 /a320ecam
 /a320sim

@@ -122,7 +122,7 @@ func createSocket(masterNode bool, addr string) (mangos.Socket, error) {
 	socket.SetOption(mangos.OptionWriteQLen, 65535)
 
 	if masterNode {
-		log.Info("Listing on ", addr)
+		log.Notice("Listening on", addr)
 		if err = socket.SetOption(mangos.OptionRaw, true); err != nil {
 			return nil, err
 		}
@@ -130,7 +130,7 @@ func createSocket(masterNode bool, addr string) (mangos.Socket, error) {
 			return nil, err
 		}
 	} else {
-		log.Info("Dialing to ", addr)
+		log.Notice("Dialing to", addr)
 		if err = socket.Dial(addr); err != nil {
 			return nil, err
 		}
