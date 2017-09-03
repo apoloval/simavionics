@@ -18,5 +18,7 @@ func main() {
 		panic(err)
 	}
 
+	NewConnectionWatcher(bus)
+
 	cli.Run()
 }

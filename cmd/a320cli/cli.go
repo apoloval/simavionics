@@ -3,6 +3,8 @@ package main
 import (
 	"strings"
 
+	"log"
+
 	"github.com/apoloval/simavionics"
 	"github.com/apoloval/simavionics/a320/apu"
 	"github.com/chzyer/readline"
@@ -22,6 +24,9 @@ func NewCLI(bus simavionics.EventBus) (*CLI, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.SetOutput(lines.Stderr())
+
 	return &CLI{
 		lines: lines,
 		bus:   bus,
