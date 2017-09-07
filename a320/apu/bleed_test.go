@@ -57,7 +57,7 @@ func TestNewBleed(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			bus := local.NewEventBus()
-			NewBleed(bus)
+			newBleed(bus)
 			eventChanBleed := bus.Subscribe(EventBleed)
 
 			simavionics.PublishEvent(bus, EventEngineN1, test.n1)

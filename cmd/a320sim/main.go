@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/apoloval/simavionics"
-	"github.com/apoloval/simavionics/a320"
+	"github.com/apoloval/simavionics/a320/apu"
 	"github.com/apoloval/simavionics/event/remote"
 )
 
@@ -22,7 +22,7 @@ func main() {
 
 	ctx := simavionics.Context{bus, 1}
 	simavionics.NewHeartbeat(bus, 250*time.Millisecond)
-	a320.NewAPU(ctx)
+	apu.NewSystem(ctx)
 
 	waitForStopSignal()
 }

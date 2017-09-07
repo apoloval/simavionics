@@ -10,9 +10,9 @@ import (
 
 func TestEngine_Start(t *testing.T) {
 	bus := local.NewEventBus()
-	engine := NewEngine(simavionics.Context{bus, 100})
+	engine := newEngine(simavionics.Context{bus, 100})
 
-	engine.Start()
+	engine.start()
 
 	maxEGT := waitForEngineStart(bus)
 

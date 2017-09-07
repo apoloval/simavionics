@@ -19,7 +19,7 @@ const (
 	engineEGTShutdownSpeed     = 2.5 // C degrees per tick
 )
 
-type Engine struct {
+type engine struct {
 	simavionics.RealTimeSystem
 
 	n1  float64
@@ -36,8 +36,8 @@ type Engine struct {
 	actionChanShutdown chan struct{}
 }
 
-func NewEngine(ctx simavionics.Context) *Engine {
-	engine := &Engine{
+func newEngine(ctx simavionics.Context) *engine {
+	engine := &engine{
 		RealTimeSystem:     simavionics.NewRealTimeSytem(ctx.RealTimeDilation),
 		bus:                ctx.Bus,
 		actionChanStart:    make(chan struct{}),
@@ -47,23 +47,23 @@ func NewEngine(ctx simavionics.Context) *Engine {
 	return engine
 }
 
-func (engine *Engine) Start() {
+func (engine *engine) start() {
 	engine.actionChanStart <- struct{}{}
 }
 
-func (engine *Engine) Shutdown() {
+func (engine *engine) shutdown() {
 	engine.actionChanShutdown <- struct{}{}
 }
 
-func (engine *Engine) run() {
+func (engine *engine) run() {
 	for {
 		select {
 		case action := <-engine.DeferredActionChan:
 			action()
 		case <-engine.actionChanStart:
-			engine.start()
+			engine.processStart()
 		case <-engine.actionChanShutdown:
-			engine.shutdown()
+			engine.processShutdown()
 		case <-tickerChan(engine.n1StartTicker):
 			engine.n1StartInc()
 		case <-tickerChan(engine.n1ShutdownTicker):
@@ -77,7 +77,7 @@ func (engine *Engine) run() {
 		}
 	}
 }
-func (engine *Engine) start() {
+func (engine *engine) processStart() {
 	log.Notice("Starting engine ignition sequence")
 	if engine.n1StartTicker == nil {
 		removeTicker(&engine.n1ShutdownTicker)
@@ -88,7 +88,7 @@ func (engine *Engine) start() {
 	}
 }
 
-func (engine *Engine) shutdown() {
+func (engine *engine) processShutdown() {
 	log.Notice("Starting engine shutdown")
 	if engine.n1ShutdownTicker == nil {
 		removeTicker(&engine.n1StartTicker)
@@ -100,7 +100,7 @@ func (engine *Engine) shutdown() {
 	}
 }
 
-func (engine *Engine) n1StartInc() {
+func (engine *engine) n1StartInc() {
 	engine.n1 += engineN1StartSpeed
 	if engine.n1 >= 100.0 {
 		engine.n1 = 100.0
@@ -109,7 +109,7 @@ func (engine *Engine) n1StartInc() {
 	simavionics.PublishEvent(engine.bus, EventEngineN1, engine.n1)
 }
 
-func (engine *Engine) n1ShutdownDec() {
+func (engine *engine) n1ShutdownDec() {
 	engine.n1 -= engineN1ShutdownSpeed
 	if engine.n1 <= 0.0 {
 		engine.n1 = 0.0
@@ -118,7 +118,7 @@ func (engine *Engine) n1ShutdownDec() {
 	simavionics.PublishEvent(engine.bus, EventEngineN1, engine.n1)
 }
 
-func (engine *Engine) egtStartInc() {
+func (engine *engine) egtStartInc() {
 	if engine.egt < engineEGTIgnitionSlowLimit {
 		engine.egt += engineEGTIgnitionSlowSpeed
 	} else {
@@ -134,7 +134,7 @@ func (engine *Engine) egtStartInc() {
 	simavionics.PublishEvent(engine.bus, EventEngineEGT, engine.egt)
 }
 
-func (engine *Engine) egtShutdownDec() {
+func (engine *engine) egtShutdownDec() {
 	engine.egt -= engineEGTShutdownSpeed
 	if engine.egt <= 0.0 {
 		engine.egt = 0.0
@@ -143,7 +143,7 @@ func (engine *Engine) egtShutdownDec() {
 	simavionics.PublishEvent(engine.bus, EventEngineEGT, engine.egt)
 }
 
-func (engine *Engine) egtStartDecay() {
+func (engine *engine) egtStartDecay() {
 	engine.egt -= engineEGTStartDecaySpeed
 	if engine.egt <= engineEGTStartDecayLimit {
 		engine.egt = engineEGTStartDecayLimit

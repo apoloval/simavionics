@@ -6,7 +6,7 @@ const (
 	maxBleedPressure = 35.0
 )
 
-type Bleed struct {
+type bleed struct {
 	bus                  simavionics.EventBus
 	eventChanBleedSwitch <-chan simavionics.EventValue
 	eventChanN1          <-chan simavionics.EventValue
@@ -15,8 +15,8 @@ type Bleed struct {
 	bleedPressure float64
 }
 
-func NewBleed(bus simavionics.EventBus) *Bleed {
-	b := &Bleed{
+func newBleed(bus simavionics.EventBus) *bleed {
+	b := &bleed{
 		bus:                  bus,
 		eventChanBleedSwitch: bus.Subscribe(EventBleedSwitch),
 		eventChanN1:          bus.Subscribe(EventEngineN1),
@@ -25,7 +25,7 @@ func NewBleed(bus simavionics.EventBus) *Bleed {
 	return b
 }
 
-func (b *Bleed) run() {
+func (b *bleed) run() {
 	for {
 		select {
 		case v := <-b.eventChanBleedSwitch:
@@ -38,7 +38,7 @@ func (b *Bleed) run() {
 	}
 }
 
-func (b *Bleed) publish() {
+func (b *bleed) publish() {
 	psi := b.bleedPressure
 	if !b.bleedOpen {
 		psi = 0

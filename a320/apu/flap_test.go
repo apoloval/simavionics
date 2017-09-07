@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/apoloval/simavionics"
-	"github.com/apoloval/simavionics/event/local"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"github.com/apoloval/simavionics/event/local"
 )
 
 type FlapTestSuite struct {
@@ -16,26 +16,26 @@ type FlapTestSuite struct {
 	simavionics.TimeAsserts
 
 	bus  simavionics.EventBus
-	flap *Flap
+	flap *flap
 }
 
 func (suite *FlapTestSuite) SetupTest() {
 	suite.TimeAsserts = simavionics.NewTimeAsserts(suite.T())
 	suite.bus = local.NewEventBus()
 	ctx := simavionics.Context{suite.bus, suite.Dilation}
-	suite.flap = NewFlap(ctx)
+	suite.flap = newFlap(ctx)
 }
 
 func (suite *FlapTestSuite) TestOpenAndClose() {
 	c := suite.bus.Subscribe(EventFlap)
-	suite.flap.Open()
+	suite.flap.open()
 
 	suite.AssertElapsed(6*time.Second, 1*time.Second, func() {
 		event := <-c
 		assert.Equal(suite.T(), true, event.Bool())
 	})
 
-	suite.flap.Close()
+	suite.flap.close()
 
 	suite.AssertElapsed(1*time.Millisecond, 2*time.Millisecond, func() {
 		event := <-c

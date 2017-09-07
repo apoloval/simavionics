@@ -1,4 +1,4 @@
-package a320
+package apu
 
 import (
 	"testing"
@@ -6,31 +6,30 @@ import (
 	"time"
 
 	"github.com/apoloval/simavionics"
-	"github.com/apoloval/simavionics/a320/apu"
 	"github.com/apoloval/simavionics/event/local"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
-type APUTestSuite struct {
+type SystemTestSuite struct {
 	suite.Suite
 	simavionics.TimeAsserts
 	bus simavionics.EventBus
-	apu *APU
+	apu *System
 }
 
-func (suite *APUTestSuite) SetupTest() {
+func (suite *SystemTestSuite) SetupTest() {
 	println("Setting up suite")
 	suite.TimeAsserts = simavionics.NewTimeAsserts(suite.T())
 	suite.bus = local.NewEventBus()
 	ctx := simavionics.Context{suite.bus, suite.Dilation}
-	suite.apu = NewAPU(ctx)
+	suite.apu = NewSystem(ctx)
 }
 
-func (suite *APUTestSuite) TestMasterSwitchOn() {
-	masterSwChan := suite.bus.Subscribe(apu.EventPower)
-	flapOpenChan := suite.bus.Subscribe(apu.EventFlap)
-	simavionics.PublishEvent(suite.bus, apu.EventMasterSwitch, true)
+func (suite *SystemTestSuite) TestMasterSwitchOn() {
+	masterSwChan := suite.bus.Subscribe(EventPower)
+	flapOpenChan := suite.bus.Subscribe(EventFlap)
+	simavionics.PublishEvent(suite.bus, EventMasterSwitch, true)
 
 	ev := <-masterSwChan
 	assert.Equal(suite.T(), true, ev.Bool())
@@ -41,10 +40,10 @@ func (suite *APUTestSuite) TestMasterSwitchOn() {
 	})
 }
 
-func (suite *APUTestSuite) TestStartButtonPressed() {
-	eventChanEngineN1 := suite.bus.Subscribe(apu.EventEngineN1)
-	simavionics.PublishEvent(suite.bus, apu.EventMasterSwitch, true)
-	simavionics.PublishEvent(suite.bus, apu.EventStartButton, true)
+func (suite *SystemTestSuite) TestStartButtonPressed() {
+	eventChanEngineN1 := suite.bus.Subscribe(EventEngineN1)
+	simavionics.PublishEvent(suite.bus, EventMasterSwitch, true)
+	simavionics.PublishEvent(suite.bus, EventStartButton, true)
 
 	suite.AssertElapsed(60*time.Second, 10*time.Second, func() {
 		for {
@@ -57,5 +56,5 @@ func (suite *APUTestSuite) TestStartButtonPressed() {
 }
 
 func TestAPUTestSuite(t *testing.T) {
-	suite.Run(t, new(APUTestSuite))
+	suite.Run(t, new(SystemTestSuite))
 }
