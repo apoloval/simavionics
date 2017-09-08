@@ -27,3 +27,17 @@ func (rts *RealTimeSystem) DeferAction(d time.Duration, action func()) {
 		rts.DeferredActionChan <- action
 	})
 }
+
+func TimerChan(timer *time.Timer) <-chan time.Time {
+	if timer == nil {
+		return nil
+	}
+	return timer.C
+}
+
+func CancelTimer(timer **time.Timer) {
+	if *timer != nil {
+		(*timer).Stop()
+		*timer = nil
+	}
+}

@@ -15,35 +15,45 @@ type apuPage struct {
 	n1  float64
 	egt float64
 
-	n1Chan       <-chan simavionics.EventValue
-	egtChan      <-chan simavionics.EventValue
-	flapOpenChan <-chan simavionics.EventValue
+	eventChanEngineN1  <-chan simavionics.EventValue
+	eventChanEngineEGT <-chan simavionics.EventValue
+	eventChanFlap      <-chan simavionics.EventValue
+	eventChanAvailable <-chan simavionics.EventValue
 
 	backgroundTexture *sdl.Texture
 	pointerTexture    *sdl.Texture
 
-	n1Text       *ui.ValueRenderer
-	egtText      *ui.ValueRenderer
-	flapOpenText *ui.ValueRenderer
+	textEngineN1  *ui.ValueRenderer
+	textEngineEGT *ui.ValueRenderer
+	textFlapOpen  *ui.ValueRenderer
+	textAvailable *ui.ValueRenderer
 }
 
 func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error) {
 	renderer := display.Renderer()
 	positioner := display.Positioner()
 
-	fontSize := positioner.Map(ui.RectF{H: 0.0375})
-	font, err := ttf.OpenFont("assets/fonts/Carlito-Regular.ttf", int(fontSize.H))
+	smallFontSize := positioner.Map(ui.RectF{H: 0.0375})
+	smallFont, err := ttf.OpenFont("assets/fonts/Carlito-Regular.ttf", int(smallFontSize.H))
+	if err != nil {
+		return nil, err
+	}
+
+	bigFontSize := positioner.Map(ui.RectF{H: 0.045})
+	bigFont, err := ttf.OpenFont("assets/fonts/Carlito-Regular.ttf", int(bigFontSize.H))
 	if err != nil {
 		return nil, err
 	}
 
 	page := &apuPage{
-		n1Chan:       bus.Subscribe(apu.EventEngineN1),
-		egtChan:      bus.Subscribe(apu.EventEngineEGT),
-		flapOpenChan: bus.Subscribe(apu.EventFlap),
-		n1Text:       ui.NewValueRenderer(renderer, font, ui.NewColor(greenColor)),
-		egtText:      ui.NewValueRenderer(renderer, font, ui.NewColor(greenColor)),
-		flapOpenText: ui.NewValueRenderer(renderer, font, ui.NewColor(greenColor)),
+		eventChanEngineN1:  bus.Subscribe(apu.EventEngineN1),
+		eventChanEngineEGT: bus.Subscribe(apu.EventEngineEGT),
+		eventChanFlap:      bus.Subscribe(apu.EventFlap),
+		eventChanAvailable: bus.Subscribe(apu.EventAvailable),
+		textEngineN1:       ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
+		textEngineEGT:      ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
+		textFlapOpen:       ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
+		textAvailable:      ui.NewValueRenderer(renderer, bigFont, ui.NewColor(greenColor)),
 	}
 
 	page.backgroundTexture, err = img.LoadTexture(renderer, "assets/ecam-apu-background.png")
@@ -61,17 +71,23 @@ func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error)
 
 func (p *apuPage) processEvents() {
 	select {
-	case v := <-p.n1Chan:
+	case v := <-p.eventChanEngineN1:
 		p.n1 = v.Float64()
-		p.n1Text.SetValue(int(p.n1))
-	case v := <-p.egtChan:
+		p.textEngineN1.SetValue(int(p.n1))
+	case v := <-p.eventChanEngineEGT:
 		p.egt = v.Float64()
-		p.egtText.SetValue(int(p.egt))
-	case v := <-p.flapOpenChan:
+		p.textEngineEGT.SetValue(int(p.egt))
+	case v := <-p.eventChanFlap:
 		if v.Bool() {
-			p.flapOpenText.SetValue("FLAP OPEN")
+			p.textFlapOpen.SetValue("FLAP OPEN")
 		} else {
-			p.flapOpenText.SetValue("")
+			p.textFlapOpen.SetValue("")
+		}
+	case v := <-p.eventChanAvailable:
+		if v.Bool() {
+			p.textAvailable.SetValue("AVAIL")
+		} else {
+			p.textAvailable.SetValue("")
 		}
 	default:
 	}
@@ -91,13 +107,15 @@ func (p *apuPage) render(display *ui.Display) {
 	renderer.CopyEx(p.pointerTexture, nil, &n1PointerRect, (p.n1*170.0/100.0)+65.0, &sdl.Point{2, 1}, sdl.FLIP_NONE)
 	renderer.CopyEx(p.pointerTexture, nil, &egtPointerRect, (p.egt*125.0/1000.0)+65.0, &sdl.Point{2, 1}, sdl.FLIP_NONE)
 
-	n1TextRect := positioner.Map(ui.RectF{X: 0.375, Y: 0.489583})
-	egtTextRect := positioner.Map(ui.RectF{X: 0.375, Y: 0.677083})
-	flapOpenTextRect := positioner.Map(ui.RectF{X: 0.578125, Y: 0.5625})
+	textRectEngineN1 := positioner.Map(ui.RectF{X: 0.375, Y: 0.489583})
+	textRectEngineEGT := positioner.Map(ui.RectF{X: 0.375, Y: 0.677083})
+	textRectFlapOpen := positioner.Map(ui.RectF{X: 0.578125, Y: 0.5625})
+	textRectAvailable := positioner.Map(ui.RectF{X: 0.45, Y: 0.15})
 
-	p.n1Text.Render(n1TextRect.X, n1TextRect.Y)
-	p.egtText.Render(egtTextRect.X, egtTextRect.Y)
-	p.flapOpenText.Render(flapOpenTextRect.X, flapOpenTextRect.Y)
+	p.textEngineN1.Render(textRectEngineN1.X, textRectEngineN1.Y)
+	p.textEngineEGT.Render(textRectEngineEGT.X, textRectEngineEGT.Y)
+	p.textFlapOpen.Render(textRectFlapOpen.X, textRectFlapOpen.Y)
+	p.textAvailable.Render(textRectAvailable.X, textRectAvailable.Y)
 
 	renderer.Present()
 }

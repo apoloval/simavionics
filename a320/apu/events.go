@@ -7,6 +7,9 @@ const (
 	EventPower        = "oh/apu/power"  // [bool] The APU is electrified
 	EventStartButton  = "oh/apu/start"  // [bool] The APU start button is pressed
 
+	// From system.go
+	EventAvailable = "apu/available"
+
 	// From engine.go
 	EventBleed     = "apu/bleed"   // [Float64] The pressure of APU bleed in PSI
 	EventEngineN1  = "apu/eng/n1"  // [Float64] The speed of N1 from 0.0 to 100.0
