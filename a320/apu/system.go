@@ -19,6 +19,7 @@ type System struct {
 	simavionics.RealTimeSystem
 
 	isAvailable bool
+	isFlapOpen  bool
 	isPowered   bool
 	isStarting  bool
 
@@ -28,6 +29,7 @@ type System struct {
 	flap   *flap
 	engine *engine
 
+	eventChanFlap         <-chan simavionics.EventValue
 	eventChanMasterSwitch <-chan simavionics.EventValue
 	eventChanStartButton  <-chan simavionics.EventValue
 	eventChanEngineN1     <-chan simavionics.EventValue
@@ -40,16 +42,13 @@ func NewSystem(ctx simavionics.Context) *System {
 		flap:           newFlap(ctx),
 		engine:         newEngine(ctx),
 
+		eventChanFlap:         ctx.Bus.Subscribe(EventFlap),
 		eventChanMasterSwitch: ctx.Bus.Subscribe(EventMasterSwitch),
 		eventChanStartButton:  ctx.Bus.Subscribe(EventStartButton),
 		eventChanEngineN1:     ctx.Bus.Subscribe(EventEngineN1),
 	}
 	go sys.run()
 	return sys
-}
-
-func (sys *System) MasterSwitch(value bool) {
-	simavionics.PublishEvent(sys.bus, EventMasterSwitch, value)
 }
 
 func (sys *System) run() {
@@ -62,6 +61,8 @@ func (sys *System) run() {
 			sys.handleStartButton()
 		case event := <-sys.eventChanEngineN1:
 			sys.handleEngineN1(event.Float64())
+		case event := <-sys.eventChanFlap:
+			sys.handleFlap(event.Bool())
 		case <-simavionics.TimerChan(sys.timerAvailableAfter95):
 			sys.available(fmt.Sprintf("%v passed after N1 > 95%%", timeAvailableAfter95))
 		}
@@ -98,9 +99,13 @@ func (sys *System) handleStartButton() {
 		return
 	}
 
-	log.Notice("Received a start button event")
 	sys.isStarting = true
-	sys.engine.start()
+	if sys.isFlapOpen {
+		log.Notice("Beginning start sequence")
+		sys.engine.start()
+	} else {
+		log.Notice("Cannot begin start sequence: flap is not open yet")
+	}
 }
 
 func (sys *System) handleEngineN1(n1 float64) {
@@ -111,6 +116,14 @@ func (sys *System) handleEngineN1(n1 float64) {
 		if n1 >= 99.5 {
 			sys.available("N1 > 99.5%")
 		}
+	}
+}
+
+func (sys *System) handleFlap(open bool) {
+	sys.isFlapOpen = open
+	if open && sys.isStarting {
+		log.Notice("In start sequence, now flap is open: starting engine")
+		sys.engine.start()
 	}
 }
 
