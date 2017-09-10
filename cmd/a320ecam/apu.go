@@ -67,7 +67,7 @@ func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error)
 	// Set the initial values for texts
 	page.textBleedPSI.SetValue(0)
 	page.textEngineN1.SetValue(0)
-	page.textEngineEGT.SetValue(0)
+	page.textEngineEGT.SetIntValue(0, 5, 10)
 
 	page.backgroundTexture, err = img.LoadTexture(renderer, "assets/ecam-apu-background.png")
 	if err != nil {
@@ -93,7 +93,7 @@ func (p *apuPage) processEvents() {
 		p.textEngineN1.SetValue(int(p.n1))
 	case v := <-p.eventChanEngineEGT:
 		p.egt = v.Float64()
-		p.textEngineEGT.SetValue(int(p.egt))
+		p.textEngineEGT.SetIntValue(int(p.egt), 5, 10)
 	case v := <-p.eventChanFlap:
 		if v.Bool() {
 			p.textFlapOpen.SetValue("FLAP OPEN")

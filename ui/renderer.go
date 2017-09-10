@@ -42,6 +42,14 @@ func (vr *ValueRenderer) SetValue(v interface{}) {
 	}
 }
 
+func (vr *ValueRenderer) SetIntValue(v int, round int, min int) {
+	value := ((v + (v % round)) / round) * round
+	if value < min {
+		value = min
+	}
+	vr.SetValue(value)
+}
+
 func (vr *ValueRenderer) Render(x int32, y int32) {
 	if vr.texture != nil {
 		vr.renderer.Copy(vr.texture, nil, &sdl.Rect{x, y, vr.w, vr.h})
