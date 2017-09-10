@@ -112,11 +112,26 @@ func (p *apuPage) processEvents() {
 
 func (p *apuPage) render(display *ui.Display) {
 	renderer := display.Renderer()
-	positioner := display.Positioner()
+
+	p.renderBackground(display)
+	p.renderEngineParams(display)
+	p.renderBleed(display)
+	p.renderMessages(display)
+
+	renderer.Present()
+}
+
+func (p *apuPage) renderBackground(display *ui.Display) {
+	renderer := display.Renderer()
 
 	renderer.SetDrawColor(0, 0, 0, 255)
 	renderer.Clear()
 	renderer.Copy(p.backgroundTexture, nil, nil)
+}
+
+func (p *apuPage) renderEngineParams(display *ui.Display) {
+	renderer := display.Renderer()
+	positioner := display.Positioner()
 
 	n1PointerRect := positioner.Map(ui.RectF{X: 0.365625, Y: 0.485416, W: 0.007812, H: 0.097917})
 	egtPointerRect := positioner.Map(ui.RectF{X: 0.365625, Y: 0.672916, W: 0.007812, H: 0.097917})
@@ -126,13 +141,24 @@ func (p *apuPage) render(display *ui.Display) {
 
 	textRectEngineN1 := positioner.Map(ui.RectF{X: 0.375, Y: 0.489583})
 	textRectEngineEGT := positioner.Map(ui.RectF{X: 0.375, Y: 0.677083})
-	textRectFlapOpen := positioner.Map(ui.RectF{X: 0.578125, Y: 0.5625})
-	textRectAvailable := positioner.Map(ui.RectF{X: 0.45, Y: 0.15})
 
 	p.textEngineN1.Render(textRectEngineN1.X, textRectEngineN1.Y)
 	p.textEngineEGT.Render(textRectEngineEGT.X, textRectEngineEGT.Y)
+}
+
+func (p *apuPage) renderMessages(display *ui.Display) {
+	positioner := display.Positioner()
+
+	textRectFlapOpen := positioner.Map(ui.RectF{X: 0.578125, Y: 0.5625})
+	textRectAvailable := positioner.Map(ui.RectF{X: 0.45, Y: 0.15})
+
 	p.textFlapOpen.Render(textRectFlapOpen.X, textRectFlapOpen.Y)
 	p.textAvailable.Render(textRectAvailable.X, textRectAvailable.Y)
+}
+
+func (p *apuPage) renderBleed(display *ui.Display) {
+	renderer := display.Renderer()
+	positioner := display.Positioner()
 
 	renderer.SetDrawColor(0, 255, 0, 255)
 	if p.bleedValve {
@@ -146,6 +172,4 @@ func (p *apuPage) render(display *ui.Display) {
 	}
 	textRectBleedPSI := positioner.Map(ui.RectF{X: 0.63, Y: 0.3})
 	p.textBleedPSI.Render(textRectBleedPSI.X, textRectBleedPSI.Y)
-
-	renderer.Present()
 }
