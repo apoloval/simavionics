@@ -18,10 +18,11 @@ var log = logging.MustGetLogger("a320.apu")
 type System struct {
 	simavionics.RealTimeSystem
 
-	isAvailable bool
-	isFlapOpen  bool
-	isPowered   bool
-	isStarting  bool
+	isAvailable    bool
+	isFlapOpen     bool
+	isPowered      bool
+	isStarting     bool
+	isShuttingDown bool
 
 	timerAvailableAfter95 *time.Timer
 
@@ -88,7 +89,6 @@ func (sys *System) handleMasterSw(on bool) {
 		sys.unavailable()
 		sys.deEnergize()
 		sys.engine.shutdown()
-		sys.flap.close()
 	}
 }
 
@@ -120,6 +120,12 @@ func (sys *System) handleEngineN1(n1 float64) {
 			sys.available("N1 > 99.5%")
 		}
 	}
+	if sys.isShuttingDown {
+		if n1 <= 0.0 {
+			sys.flap.close()
+			sys.isShuttingDown = false
+		}
+	}
 }
 
 func (sys *System) handleFlap(open bool) {
@@ -134,6 +140,7 @@ func (sys *System) energize() {
 	log.Notice("APU is now energized")
 	sys.isPowered = true
 	sys.isStarting = false
+	sys.isShuttingDown = false
 	simavionics.PublishEvent(sys.bus, EventMaster, true)
 }
 
@@ -141,6 +148,7 @@ func (sys *System) deEnergize() {
 	log.Notice("APU is now de-energized")
 	sys.isPowered = false
 	sys.isStarting = false
+	sys.isShuttingDown = true
 	simavionics.PublishEvent(sys.bus, EventMaster, false)
 }
 
