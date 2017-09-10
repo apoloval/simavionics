@@ -8,6 +8,7 @@ const (
 
 	// From system.go
 	EventAvailable = "apu/available"
+	EventEnergized = "apu/energized"
 	EventMaster    = "apu/master"
 
 	// From bleed.go

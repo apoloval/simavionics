@@ -9,7 +9,10 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
-const greenColor = 0x00C000FF
+const (
+	greenColor = 0x00C000FF
+	amberColor = 0xCC7832FF
+)
 
 type apuPage struct {
 	bleedValve bool
@@ -17,12 +20,15 @@ type apuPage struct {
 	n1         float64
 	egt        float64
 
+	isEnergized bool
+
+	eventChanAvailable  <-chan simavionics.EventValue
 	eventChanBleed      <-chan simavionics.EventValue
 	eventChanBleedValve <-chan simavionics.EventValue
+	eventChanEnergized  <-chan simavionics.EventValue
 	eventChanEngineN1   <-chan simavionics.EventValue
 	eventChanEngineEGT  <-chan simavionics.EventValue
 	eventChanFlap       <-chan simavionics.EventValue
-	eventChanAvailable  <-chan simavionics.EventValue
 
 	backgroundTexture *sdl.Texture
 	pointerTexture    *sdl.Texture
@@ -30,6 +36,7 @@ type apuPage struct {
 	textBleedPSI  *ui.ValueRenderer
 	textEngineN1  *ui.ValueRenderer
 	textEngineEGT *ui.ValueRenderer
+	textEngineXX  *ui.ValueRenderer
 	textFlapOpen  *ui.ValueRenderer
 	textAvailable *ui.ValueRenderer
 }
@@ -51,15 +58,17 @@ func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error)
 	}
 
 	page := &apuPage{
+		eventChanAvailable:  bus.Subscribe(apu.EventAvailable),
 		eventChanBleed:      bus.Subscribe(apu.EventBleed),
 		eventChanBleedValve: bus.Subscribe(apu.EventBleedValve),
+		eventChanEnergized:  bus.Subscribe(apu.EventMaster),
 		eventChanEngineN1:   bus.Subscribe(apu.EventEngineN1),
 		eventChanEngineEGT:  bus.Subscribe(apu.EventEngineEGT),
 		eventChanFlap:       bus.Subscribe(apu.EventFlap),
-		eventChanAvailable:  bus.Subscribe(apu.EventAvailable),
 		textBleedPSI:        ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
 		textEngineN1:        ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
 		textEngineEGT:       ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
+		textEngineXX:        ui.NewValueRenderer(renderer, smallFont, ui.NewColor(amberColor)),
 		textFlapOpen:        ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
 		textAvailable:       ui.NewValueRenderer(renderer, bigFont, ui.NewColor(greenColor)),
 	}
@@ -68,6 +77,7 @@ func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error)
 	page.textBleedPSI.SetValue(0)
 	page.textEngineN1.SetValue(0)
 	page.textEngineEGT.SetIntValue(0, 5, 10)
+	page.textEngineXX.SetValue("XX")
 
 	page.backgroundTexture, err = img.LoadTexture(renderer, "assets/ecam-apu-background.png")
 	if err != nil {
@@ -84,6 +94,12 @@ func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error)
 
 func (p *apuPage) processEvents() {
 	select {
+	case v := <-p.eventChanAvailable:
+		if v.Bool() {
+			p.textAvailable.SetValue("AVAIL")
+		} else {
+			p.textAvailable.SetValue("")
+		}
 	case v := <-p.eventChanBleedValve:
 		p.bleedValve = v.Bool()
 	case v := <-p.eventChanBleed:
@@ -100,12 +116,8 @@ func (p *apuPage) processEvents() {
 		} else {
 			p.textFlapOpen.SetValue("")
 		}
-	case v := <-p.eventChanAvailable:
-		if v.Bool() {
-			p.textAvailable.SetValue("AVAIL")
-		} else {
-			p.textAvailable.SetValue("")
-		}
+	case v := <-p.eventChanEnergized:
+		p.isEnergized = v.Bool()
 	default:
 	}
 }
@@ -135,15 +147,18 @@ func (p *apuPage) renderEngineParams(display *ui.Display) {
 
 	n1PointerRect := positioner.Map(ui.RectF{X: 0.365625, Y: 0.485416, W: 0.007812, H: 0.097917})
 	egtPointerRect := positioner.Map(ui.RectF{X: 0.365625, Y: 0.672916, W: 0.007812, H: 0.097917})
-
-	renderer.CopyEx(p.pointerTexture, nil, &n1PointerRect, (p.n1*170.0/100.0)+65.0, &sdl.Point{2, 1}, sdl.FLIP_NONE)
-	renderer.CopyEx(p.pointerTexture, nil, &egtPointerRect, (p.egt*125.0/1000.0)+65.0, &sdl.Point{2, 1}, sdl.FLIP_NONE)
-
 	textRectEngineN1 := positioner.Map(ui.RectF{X: 0.375, Y: 0.489583})
 	textRectEngineEGT := positioner.Map(ui.RectF{X: 0.375, Y: 0.677083})
 
-	p.textEngineN1.Render(textRectEngineN1.X, textRectEngineN1.Y)
-	p.textEngineEGT.Render(textRectEngineEGT.X, textRectEngineEGT.Y)
+	if p.isEnergized {
+		renderer.CopyEx(p.pointerTexture, nil, &n1PointerRect, (p.n1*170.0/100.0)+65.0, &sdl.Point{2, 1}, sdl.FLIP_NONE)
+		renderer.CopyEx(p.pointerTexture, nil, &egtPointerRect, (p.egt*125.0/1000.0)+65.0, &sdl.Point{2, 1}, sdl.FLIP_NONE)
+		p.textEngineN1.Render(textRectEngineN1.X, textRectEngineN1.Y)
+		p.textEngineEGT.Render(textRectEngineEGT.X, textRectEngineEGT.Y)
+	} else {
+		p.textEngineXX.Render(textRectEngineN1.X, textRectEngineN1.Y)
+		p.textEngineXX.Render(textRectEngineEGT.X, textRectEngineEGT.Y)
+	}
 }
 
 func (p *apuPage) renderMessages(display *ui.Display) {

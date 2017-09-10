@@ -87,7 +87,7 @@ func (sys *System) handleMasterSw(on bool) {
 		}
 		log.Notice("Master switch is off")
 		sys.unavailable()
-		sys.deEnergize()
+		sys.shutdown()
 		sys.engine.shutdown()
 	}
 }
@@ -122,8 +122,8 @@ func (sys *System) handleEngineN1(n1 float64) {
 	}
 	if sys.isShuttingDown {
 		if n1 <= 0.0 {
+			sys.deEnergize()
 			sys.flap.close()
-			sys.isShuttingDown = false
 		}
 	}
 }
@@ -136,11 +136,16 @@ func (sys *System) handleFlap(open bool) {
 	}
 }
 
+func (sys *System) shutdown() {
+	sys.isShuttingDown = true
+	simavionics.PublishEvent(sys.bus, EventMaster, false)
+}
 func (sys *System) energize() {
 	log.Notice("APU is now energized")
 	sys.isPowered = true
 	sys.isStarting = false
 	sys.isShuttingDown = false
+	simavionics.PublishEvent(sys.bus, EventEnergized, true)
 	simavionics.PublishEvent(sys.bus, EventMaster, true)
 }
 
@@ -148,8 +153,8 @@ func (sys *System) deEnergize() {
 	log.Notice("APU is now de-energized")
 	sys.isPowered = false
 	sys.isStarting = false
-	sys.isShuttingDown = true
-	simavionics.PublishEvent(sys.bus, EventMaster, false)
+	sys.isShuttingDown = false
+	simavionics.PublishEvent(sys.bus, EventEnergized, false)
 }
 
 func (sys *System) available(reason string) {
