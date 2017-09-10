@@ -29,16 +29,32 @@ func (b *bleed) run() {
 	for {
 		select {
 		case v := <-b.eventChanBleedSwitch:
-			b.bleedOpen = v.Bool()
-			b.publish()
+			b.setValve(v.Bool())
+			b.publishPsi()
 		case v := <-b.eventChanN1:
 			b.bleedPressure = maxBleedPressure * v.Float64() / 100.0
-			b.publish()
+			b.publishPsi()
 		}
 	}
 }
 
-func (b *bleed) publish() {
+func (b *bleed) setValve(open bool) {
+	switch {
+	case open && b.bleedOpen:
+		log.Notice("Ignoring bleed switch on: valve already open")
+		return
+	case open && !b.bleedOpen:
+		log.Notice("Opening bleed valve")
+	case !open && !b.bleedOpen:
+		log.Notice("Ignoring bleed switch off: valve already closed")
+	case !open && b.bleedOpen:
+		log.Notice("Closing bleed valve")
+	}
+	b.bleedOpen = open
+	simavionics.PublishEvent(b.bus, EventBleedValve, open)
+}
+
+func (b *bleed) publishPsi() {
 	psi := b.bleedPressure
 	if !b.bleedOpen {
 		psi = 0

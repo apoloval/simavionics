@@ -10,8 +10,11 @@ const (
 	EventAvailable = "apu/available"
 	EventMaster    = "apu/master"
 
+	// From bleed.go
+	EventBleed      = "apu/bleed"       // [Float64] The pressure of APU bleed in PSI
+	EventBleedValve = "apu/bleed/valve" // [Bool] The bleed valve is open
+
 	// From engine.go
-	EventBleed     = "apu/bleed"   // [Float64] The pressure of APU bleed in PSI
 	EventEngineN1  = "apu/eng/n1"  // [Float64] The speed of N1 from 0.0 to 100.0
 	EventEngineEGT = "apu/eng/egt" // [Float64] The escape gasses temperature in ºC
 

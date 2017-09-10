@@ -26,6 +26,7 @@ type System struct {
 	timerAvailableAfter95 *time.Timer
 
 	bus    simavionics.EventBus
+	bleed  *bleed
 	flap   *flap
 	engine *engine
 
@@ -39,6 +40,7 @@ func NewSystem(ctx simavionics.Context) *System {
 	sys := &System{
 		RealTimeSystem: simavionics.NewRealTimeSytem(ctx.RealTimeDilation),
 		bus:            ctx.Bus,
+		bleed:          newBleed(ctx.Bus),
 		flap:           newFlap(ctx),
 		engine:         newEngine(ctx),
 

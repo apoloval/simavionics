@@ -89,8 +89,16 @@ func (c *CLI) Apu(args []string) {
 		simavionics.PublishEvent(c.bus, apu.EventMasterSwitch, false)
 	case argsMatch(args, "start"):
 		simavionics.PublishEvent(c.bus, apu.EventStartButton, true)
+	case argsMatch(args, "bleed", "on"):
+		simavionics.PublishEvent(c.bus, apu.EventBleedSwitch, true)
+	case argsMatch(args, "bleed", "off"):
+		simavionics.PublishEvent(c.bus, apu.EventBleedSwitch, false)
 	default:
-		printSyntaxError("apu master (on|off)")
+		printSyntaxError(
+			"apu master (on|off)",
+			"apu start",
+			"apu bleed (on|off)",
+		)
 	}
 }
 

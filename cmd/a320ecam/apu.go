@@ -12,17 +12,22 @@ import (
 const greenColor = 0x00C000FF
 
 type apuPage struct {
-	n1  float64
-	egt float64
+	bleedValve bool
+	bleedPSI   float64
+	n1         float64
+	egt        float64
 
-	eventChanEngineN1  <-chan simavionics.EventValue
-	eventChanEngineEGT <-chan simavionics.EventValue
-	eventChanFlap      <-chan simavionics.EventValue
-	eventChanAvailable <-chan simavionics.EventValue
+	eventChanBleed      <-chan simavionics.EventValue
+	eventChanBleedValve <-chan simavionics.EventValue
+	eventChanEngineN1   <-chan simavionics.EventValue
+	eventChanEngineEGT  <-chan simavionics.EventValue
+	eventChanFlap       <-chan simavionics.EventValue
+	eventChanAvailable  <-chan simavionics.EventValue
 
 	backgroundTexture *sdl.Texture
 	pointerTexture    *sdl.Texture
 
+	textBleedPSI  *ui.ValueRenderer
 	textEngineN1  *ui.ValueRenderer
 	textEngineEGT *ui.ValueRenderer
 	textFlapOpen  *ui.ValueRenderer
@@ -46,15 +51,23 @@ func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error)
 	}
 
 	page := &apuPage{
-		eventChanEngineN1:  bus.Subscribe(apu.EventEngineN1),
-		eventChanEngineEGT: bus.Subscribe(apu.EventEngineEGT),
-		eventChanFlap:      bus.Subscribe(apu.EventFlap),
-		eventChanAvailable: bus.Subscribe(apu.EventAvailable),
-		textEngineN1:       ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
-		textEngineEGT:      ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
-		textFlapOpen:       ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
-		textAvailable:      ui.NewValueRenderer(renderer, bigFont, ui.NewColor(greenColor)),
+		eventChanBleed:      bus.Subscribe(apu.EventBleed),
+		eventChanBleedValve: bus.Subscribe(apu.EventBleedValve),
+		eventChanEngineN1:   bus.Subscribe(apu.EventEngineN1),
+		eventChanEngineEGT:  bus.Subscribe(apu.EventEngineEGT),
+		eventChanFlap:       bus.Subscribe(apu.EventFlap),
+		eventChanAvailable:  bus.Subscribe(apu.EventAvailable),
+		textBleedPSI:        ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
+		textEngineN1:        ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
+		textEngineEGT:       ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
+		textFlapOpen:        ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
+		textAvailable:       ui.NewValueRenderer(renderer, bigFont, ui.NewColor(greenColor)),
 	}
+
+	// Set the initial values for texts
+	page.textBleedPSI.SetValue(0)
+	page.textEngineN1.SetValue(0)
+	page.textEngineEGT.SetValue(0)
 
 	page.backgroundTexture, err = img.LoadTexture(renderer, "assets/ecam-apu-background.png")
 	if err != nil {
@@ -71,6 +84,10 @@ func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error)
 
 func (p *apuPage) processEvents() {
 	select {
+	case v := <-p.eventChanBleedValve:
+		p.bleedValve = v.Bool()
+	case v := <-p.eventChanBleed:
+		p.textBleedPSI.SetValue(int(v.Float64()))
 	case v := <-p.eventChanEngineN1:
 		p.n1 = v.Float64()
 		p.textEngineN1.SetValue(int(p.n1))
@@ -116,6 +133,19 @@ func (p *apuPage) render(display *ui.Display) {
 	p.textEngineEGT.Render(textRectEngineEGT.X, textRectEngineEGT.Y)
 	p.textFlapOpen.Render(textRectFlapOpen.X, textRectFlapOpen.Y)
 	p.textAvailable.Render(textRectAvailable.X, textRectAvailable.Y)
+
+	renderer.SetDrawColor(0, 255, 0, 255)
+	if p.bleedValve {
+		x1, y1 := positioner.MapCoords(0.6630859375, 0.167317708333333)
+		x2, y2 := positioner.MapCoords(0.6630859375, 0.223958333333333)
+		renderer.DrawLine(x1, y1, x2, y2)
+	} else {
+		x1, y1 := positioner.MapCoords(0.641845703125, 0.1953125)
+		x2, y2 := positioner.MapCoords(0.6845703125, 0.1953125)
+		renderer.DrawLine(x1, y1, x2, y2)
+	}
+	textRectBleedPSI := positioner.Map(ui.RectF{X: 0.63, Y: 0.3})
+	p.textBleedPSI.Render(textRectBleedPSI.X, textRectBleedPSI.Y)
 
 	renderer.Present()
 }
