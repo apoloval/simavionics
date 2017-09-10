@@ -69,12 +69,12 @@ func (sys *System) run() {
 	}
 }
 func (sys *System) handleMasterSw(on bool) {
-	log.Notice("Received a master switch event:", on)
 	if on {
 		if sys.isPowered {
 			log.Notice("Ignoring master switch on: already energized")
 			return
 		}
+		log.Notice("Master switch is on")
 		sys.energize()
 		sys.flap.open()
 	} else {
@@ -82,6 +82,7 @@ func (sys *System) handleMasterSw(on bool) {
 			log.Notice("Ignoring master switch off: already de-energized")
 			return
 		}
+		log.Notice("Master switch is off")
 		sys.unavailable()
 		sys.deEnergize()
 		sys.engine.shutdown()
@@ -131,14 +132,14 @@ func (sys *System) energize() {
 	log.Notice("APU is now energized")
 	sys.isPowered = true
 	sys.isStarting = false
-	simavionics.PublishEvent(sys.bus, EventPower, true)
+	simavionics.PublishEvent(sys.bus, EventMaster, true)
 }
 
 func (sys *System) deEnergize() {
 	log.Notice("APU is now de-energized")
 	sys.isPowered = false
 	sys.isStarting = false
-	simavionics.PublishEvent(sys.bus, EventPower, false)
+	simavionics.PublishEvent(sys.bus, EventMaster, false)
 }
 
 func (sys *System) available(reason string) {

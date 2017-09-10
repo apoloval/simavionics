@@ -4,11 +4,11 @@ const (
 	// APU controls in overhead panel
 	EventBleedSwitch  = "oh/apu/bleed"  // [bool] The bleed switch
 	EventMasterSwitch = "oh/apu/master" // [bool] The master switch status
-	EventPower        = "oh/apu/power"  // [bool] The APU is electrified
 	EventStartButton  = "oh/apu/start"  // [bool] The APU start button is pressed
 
 	// From system.go
 	EventAvailable = "apu/available"
+	EventMaster    = "apu/master"
 
 	// From engine.go
 	EventBleed     = "apu/bleed"   // [Float64] The pressure of APU bleed in PSI
