@@ -67,7 +67,7 @@ func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error)
 		eventChanAvailable:  bus.Subscribe(apu.EventAvailable),
 		eventChanBleed:      bus.Subscribe(apu.EventBleed),
 		eventChanBleedValve: bus.Subscribe(apu.EventBleedValve),
-		eventChanEnergized:  bus.Subscribe(apu.EventMaster),
+		eventChanEnergized:  bus.Subscribe(apu.EventEnergized),
 		eventChanEngineN1:   bus.Subscribe(apu.EventEngineN1),
 		eventChanEngineEGT:  bus.Subscribe(apu.EventEngineEGT),
 		eventChanFlap:       bus.Subscribe(apu.EventFlap),
