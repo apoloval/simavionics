@@ -30,6 +30,7 @@ type System struct {
 	bleed  *bleed
 	flap   *flap
 	engine *engine
+	gen    *generator
 
 	eventChanFlap         <-chan simavionics.EventValue
 	eventChanMasterSwitch <-chan simavionics.EventValue
@@ -44,6 +45,7 @@ func NewSystem(ctx simavionics.Context) *System {
 		bleed:          newBleed(ctx.Bus),
 		flap:           newFlap(ctx),
 		engine:         newEngine(ctx),
+		gen:            newGenerator(ctx.Bus),
 
 		eventChanFlap:         ctx.Bus.Subscribe(EventFlap),
 		eventChanMasterSwitch: ctx.Bus.Subscribe(EventMasterSwitch),

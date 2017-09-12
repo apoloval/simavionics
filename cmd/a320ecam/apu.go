@@ -29,6 +29,9 @@ type apuPage struct {
 	eventChanEngineN1   <-chan simavionics.EventValue
 	eventChanEngineEGT  <-chan simavionics.EventValue
 	eventChanFlap       <-chan simavionics.EventValue
+	eventChanGenPerc    <-chan simavionics.EventValue
+	eventChanGenVolt    <-chan simavionics.EventValue
+	eventChanGenFreq    <-chan simavionics.EventValue
 
 	backgroundTexture *sdl.Texture
 	pointerTexture    *sdl.Texture
@@ -37,6 +40,9 @@ type apuPage struct {
 	textEngineN1  *ui.ValueRenderer
 	textEngineEGT *ui.ValueRenderer
 	textEngineXX  *ui.ValueRenderer
+	textGenPerc   *ui.ValueRenderer
+	textGenVolt   *ui.ValueRenderer
+	textGenFreq   *ui.ValueRenderer
 	textFlapOpen  *ui.ValueRenderer
 	textAvailable *ui.ValueRenderer
 }
@@ -65,10 +71,16 @@ func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error)
 		eventChanEngineN1:   bus.Subscribe(apu.EventEngineN1),
 		eventChanEngineEGT:  bus.Subscribe(apu.EventEngineEGT),
 		eventChanFlap:       bus.Subscribe(apu.EventFlap),
+		eventChanGenPerc:    bus.Subscribe(apu.EventGenPercentage),
+		eventChanGenVolt:    bus.Subscribe(apu.EventGenVoltage),
+		eventChanGenFreq:    bus.Subscribe(apu.EventGenFrequency),
 		textBleedPSI:        ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
 		textEngineN1:        ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
 		textEngineEGT:       ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
 		textEngineXX:        ui.NewValueRenderer(renderer, smallFont, ui.NewColor(amberColor)),
+		textGenPerc:         ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
+		textGenVolt:         ui.NewValueRenderer(renderer, smallFont, ui.NewColor(amberColor)),
+		textGenFreq:         ui.NewValueRenderer(renderer, smallFont, ui.NewColor(amberColor)),
 		textFlapOpen:        ui.NewValueRenderer(renderer, smallFont, ui.NewColor(greenColor)),
 		textAvailable:       ui.NewValueRenderer(renderer, bigFont, ui.NewColor(greenColor)),
 	}
@@ -78,6 +90,9 @@ func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error)
 	page.textEngineN1.SetValue(0)
 	page.textEngineEGT.SetIntValue(0, 5, 10)
 	page.textEngineXX.SetValue("XX")
+	page.textGenPerc.SetValue(0)
+	page.textGenVolt.SetValue("XX")
+	page.textGenFreq.SetValue("XX")
 
 	page.backgroundTexture, err = img.LoadTexture(renderer, "assets/ecam-apu-background.png")
 	if err != nil {
@@ -93,32 +108,53 @@ func newAPUPage(bus simavionics.EventBus, display *ui.Display) (*apuPage, error)
 }
 
 func (p *apuPage) processEvents() {
-	select {
-	case v := <-p.eventChanAvailable:
-		if v.Bool() {
-			p.textAvailable.SetValue("AVAIL")
-		} else {
-			p.textAvailable.SetValue("")
+	for {
+		select {
+		case v := <-p.eventChanAvailable:
+			if v.Bool() {
+				p.textAvailable.SetValue("AVAIL")
+			} else {
+				p.textAvailable.SetValue("")
+			}
+		case v := <-p.eventChanBleedValve:
+			p.bleedValve = v.Bool()
+		case v := <-p.eventChanBleed:
+			p.textBleedPSI.SetValue(int(v.Float64()))
+		case v := <-p.eventChanEngineN1:
+			p.n1 = v.Float64()
+			p.textEngineN1.SetValue(int(p.n1))
+		case v := <-p.eventChanEngineEGT:
+			p.egt = v.Float64()
+			p.textEngineEGT.SetIntValue(int(p.egt), 5, 10)
+		case v := <-p.eventChanGenPerc:
+			p.textGenPerc.SetValue(int(v.Float64()))
+		case v := <-p.eventChanGenVolt:
+			if v.Float64() == 0.0 {
+				p.textGenVolt.SetColor(ui.NewColor(amberColor))
+				p.textGenVolt.SetValue("XX")
+			} else {
+				p.textGenVolt.SetColor(ui.NewColor(greenColor))
+				p.textGenVolt.SetValue(int(v.Float64()))
+			}
+		case v := <-p.eventChanGenFreq:
+			if v.Float64() == 0.0 {
+				p.textGenFreq.SetColor(ui.NewColor(amberColor))
+				p.textGenFreq.SetValue("XX")
+			} else {
+				p.textGenFreq.SetColor(ui.NewColor(greenColor))
+				p.textGenFreq.SetValue(int(v.Float64()))
+			}
+		case v := <-p.eventChanFlap:
+			if v.Bool() {
+				p.textFlapOpen.SetValue("FLAP OPEN")
+			} else {
+				p.textFlapOpen.SetValue("")
+			}
+		case v := <-p.eventChanEnergized:
+			p.isEnergized = v.Bool()
+		default:
+			return
 		}
-	case v := <-p.eventChanBleedValve:
-		p.bleedValve = v.Bool()
-	case v := <-p.eventChanBleed:
-		p.textBleedPSI.SetValue(int(v.Float64()))
-	case v := <-p.eventChanEngineN1:
-		p.n1 = v.Float64()
-		p.textEngineN1.SetValue(int(p.n1))
-	case v := <-p.eventChanEngineEGT:
-		p.egt = v.Float64()
-		p.textEngineEGT.SetIntValue(int(p.egt), 5, 10)
-	case v := <-p.eventChanFlap:
-		if v.Bool() {
-			p.textFlapOpen.SetValue("FLAP OPEN")
-		} else {
-			p.textFlapOpen.SetValue("")
-		}
-	case v := <-p.eventChanEnergized:
-		p.isEnergized = v.Bool()
-	default:
 	}
 }
 
@@ -129,6 +165,7 @@ func (p *apuPage) render(display *ui.Display) {
 	p.renderEngineParams(display)
 	p.renderBleed(display)
 	p.renderMessages(display)
+	p.renderGen(display)
 
 	renderer.Present()
 }
@@ -187,4 +224,16 @@ func (p *apuPage) renderBleed(display *ui.Display) {
 	}
 	textRectBleedPSI := positioner.Map(ui.RectF{X: 0.63, Y: 0.3})
 	p.textBleedPSI.Render(textRectBleedPSI.X, textRectBleedPSI.Y)
+}
+
+func (p *apuPage) renderGen(display *ui.Display) {
+	positioner := display.Positioner()
+
+	textRectPerc := positioner.Map(ui.RectF{X: 0.300, Y: 0.218})
+	textRectVolt := positioner.Map(ui.RectF{X: 0.300, Y: 0.257})
+	textRectFreq := positioner.Map(ui.RectF{X: 0.300, Y: 0.296})
+
+	p.textGenPerc.Render(textRectPerc.X, textRectPerc.Y)
+	p.textGenVolt.Render(textRectVolt.X, textRectVolt.Y)
+	p.textGenFreq.Render(textRectFreq.X, textRectFreq.Y)
 }

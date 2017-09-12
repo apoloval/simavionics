@@ -13,8 +13,9 @@ type page interface {
 	render(display *ui.Display)
 }
 
+var log = logging.MustGetLogger("ecam")
+
 func main() {
-	log := logging.MustGetLogger("main")
 	simavionics.EnableLogging()
 
 	var err error
@@ -51,6 +52,11 @@ func main() {
 			apuPage.render(display)
 		}
 
-		sdl.PollEvent()
+		for {
+			event := sdl.PollEvent()
+			if event == nil {
+				break
+			}
+		}
 	}
 }

@@ -22,6 +22,10 @@ func NewValueRenderer(renderer *sdl.Renderer, font *ttf.Font, color sdl.Color) *
 	return value
 }
 
+func (vr *ValueRenderer) SetColor(color sdl.Color) {
+	vr.color = color
+}
+
 func (vr *ValueRenderer) SetValue(v interface{}) {
 	if v != vr.value {
 		vr.value = v

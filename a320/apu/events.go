@@ -19,6 +19,11 @@ const (
 	EventEngineN1  = "apu/eng/n1"  // [Float64] The speed of N1 from 0.0 to 100.0
 	EventEngineEGT = "apu/eng/egt" // [Float64] The escape gasses temperature in ºC
 
+	// From gen.go
+	EventGenPercentage = "apu/gen/per"  // [Float64] The percentage of load from 0.0 to 100.0
+	EventGenVoltage    = "apu/gen/volt" // [Float64] The voltage supplied by the generator
+	EventGenFrequency  = "apu/gen/freq" // [Float64] The frequency in hertzs supplied by the generator
+
 	// From flap.go
 	EventFlap = "apu/flap" // [bool] The status of the flap
 )
