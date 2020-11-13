@@ -61,7 +61,7 @@ func (vr *ValueRenderer) Render(x int32, y int32) {
 }
 
 func (vr *ValueRenderer) renderText(text string) (*sdl.Texture, int32, int32, error) {
-	surface, err := vr.font.RenderUTF8_Blended(text, vr.color)
+	surface, err := vr.font.RenderUTF8Blended(text, vr.color)
 	if err != nil {
 		return nil, 0, 0, err
 	}

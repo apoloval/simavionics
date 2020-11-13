@@ -4,3 +4,6 @@ vendor/
 /a320cli
 /a320ecam
 /a320sim
+/a320cli.exe
+/a320ecam.exe
+/a320sim.exe

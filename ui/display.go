@@ -28,7 +28,7 @@ func NewDisplay(title string, width, height uint) (*Display, error) {
 	d.window, err = sdl.CreateWindow(
 		title,
 		sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-		int(width), int(height),
+		int32(width), int32(height),
 		sdl.WINDOW_SHOWN,
 	)
 	if err != nil {

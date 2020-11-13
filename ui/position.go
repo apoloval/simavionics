@@ -30,6 +30,6 @@ func (p Positioner) Map(r RectF) sdl.Rect {
 	}
 }
 
-func (p Positioner) MapCoords(x float64, y float64) (int, int) {
-	return int(x * p.xFactor), int(y * p.yFactor)
+func (p Positioner) MapCoords(x float64, y float64) (int32, int32) {
+	return int32(x * p.xFactor), int32(y * p.yFactor)
 }
