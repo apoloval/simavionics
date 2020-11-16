@@ -20,7 +20,9 @@ If the simulator is unavaiable, the rest of the program will work and will try t
 
 ## Requirements
 
-The SDL2 system libs. Follow [this](https://github.com/veandco/go-sdl2#requirements) guide.
+- GNU Make (preinstalled in most UNIX systems such as Linux, Mac, Mingw-w64...)
+- A suitable [Go language distribution](https://golang.org/). 
+- The SDL2 system libs. Follow [this guide](https://github.com/veandco/go-sdl2#requirements).
 
 ## Build
 
