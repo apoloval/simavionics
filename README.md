@@ -18,9 +18,15 @@ The three programs communicate through the network. By default, they bind and co
 
 If the simulator is unavaiable, the rest of the program will work and will try to reconnect in a loop. Once the simulator is back to life, the programs will operate normally. 
 
+## Requirements
+
+- GNU Make (preinstalled in most UNIX systems such as Linux, Mac, Mingw-w64...)
+- A suitable [Go language distribution](https://golang.org/). 
+- The SDL2 system libs. Follow [this guide](https://github.com/veandco/go-sdl2#requirements).
+
 ## Build
 
-Just do:
+After installing requirements above mentioned, just do:
 
 ```
 $ make all
